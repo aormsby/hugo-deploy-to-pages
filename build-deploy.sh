@@ -2,16 +2,17 @@
 
 # region settings
 # BUILD/DEPLOY SETTINGS - edit as needed for your use case
-PUB_SUBMODULE="public"         # name of output folder where git submodule is located
-IGNORE_FILES=". .. .git CNAME" # space-delimited array of files to protect when 'fresh' option is used
-DEV_BRANCHES="dev dev"         # development branches to build on and push to, 1-root, 2-pubmodule
-PROD_BRANCHES="master master"  # production branches to build on and push to, 1-root, 2-pubmodule
+# INPUT_DEPLOY_DIRECTORY="public"         # name of output folder where git submodule is located
+IGNORE_FILES=". .. .git CNAME" "${INPUT_DO_NOT_DELETE_FILES}" # space-delimited array of files to protect when 'fresh' option is used
+# DEV_BRANCHES="dev dev"         # development branches to build on and push to, 1-root, 2-pubmodule
+# PROD_BRANCHES="master master"  # production branches to build on and push to, 1-root, 2-pubmodule
+
 # endregion
 
 # region script vars
 # vars used by script, do no edit
 FRESH="false"
-HUGO_OPTIONS=""
+# INPUT_HUGO_BUILD_OPTIONS=""
 # console text styles
 S_LY="\033[93m"
 S_LR="\033[91m"
@@ -48,7 +49,7 @@ update_build_data() {
 check_branches() {
 	# set public or base module as active string
 	if [ "${2}" = "public" ]; then
-		SUBDIR="-C ${PUB_SUBMODULE}/"
+		SUBDIR="-C ${INPUT_DEPLOY_DIRECTORY}/"
 	else
 		SUBDIR=""
 	fi
@@ -64,7 +65,7 @@ check_branches() {
 check_remote_status() {
 	# set public or base module as active string
 	if [ "${2}" = "public" ]; then
-		SUBDIR="-C ${PUB_SUBMODULE}/"
+		SUBDIR="-C ${INPUT_DEPLOY_DIRECTORY}/"
 	else
 		SUBDIR=""
 	fi
@@ -91,7 +92,7 @@ check_remote_status() {
 # on 'fresh', delete public data before rebuild (ignores files by name from settings 'array')
 clear_pub_data() {
 	# get string of filenames at submodule path
-	FILE_LIST=$(ls -a "${PUB_SUBMODULE}/")
+	FILE_LIST=$(ls -a "${INPUT_DEPLOY_DIRECTORY}/")
 
 	# remove the ignored filenames from the string list
 	for i in $(echo "${IGNORE_FILES}" | sed "s/ /\\ /g"); do
@@ -101,19 +102,19 @@ clear_pub_data() {
 
 	# delete remaining files in the filename list
 	for f in $(echo "${FILE_LIST}" | sed "s/ /\\ /g"); do
-		rm -r "${PUB_SUBMODULE:?}/${f}"
+		rm -r "${INPUT_DEPLOY_DIRECTORY:?}/${f}"
 	done
 	unset f
 }
 
 # 'hugo build' plus any optional arguments
 build_site() {
-	hugo "${HUGO_OPTIONS}" || fail_and_exit "hugo"
+	hugo "${INPUT_HUGO_BUILD_OPTIONS}" || fail_and_exit "hugo"
 }
 
 # add, commit, and push, baby!
 deploy_to_remote() {
-	git_add_commit "${PUB_SUBMODULE}" # add and commit files to public module
+	git_add_commit "${INPUT_DEPLOY_DIRECTORY}" # add and commit files to public module
 	git_add_commit                    # add and commit files to base module
 
 	# Push base and public submodule data recursively
@@ -169,7 +170,7 @@ fail_and_exit() {
 
 # usage printout on -h option
 usage() {
-	echo "$(printf "%s%s%s" "\n" "${S_B}${S_LG}USAGE:${S_N} ${0} [-d|-f] [ -m \"COMMIT_MESSAGE\" ] [ -o \"HUGO_OPTIONS\" ]" "\n")"
+	echo "$(printf "%s%s%s" "\n" "${S_B}${S_LG}USAGE:${S_N} ${0} [-d|-f] [ -m \"COMMIT_MESSAGE\" ] [ -o \"INPUT_HUGO_BUILD_OPTIONS\" ]" "\n")"
 	echo "  -d | dev, deploys to development branches set in DEV_BRANCHES list (default is PROD_BRANCHES)"
 	echo "  -f | fresh, deletes public directory data before rebuild (skips files in IGNORE_FILES list)"
 	echo "  -m | message, appends to auto-build commit message, works like git -m"
@@ -184,6 +185,15 @@ debug_mode() {
 	echo "---TEST MODE---"
 	set -x # outputs all commands called in script to the console
 	# fill me out! :)
+    echo "${INPUT_DEPLOY_DIRECTORY}"
+    echo "${INPUT_DO_NOT_DELETE_FILES}"
+    echo "${INPUT_IGNORE_FILES}"
+    echo "${INPUT_HUGO_BUILD_OPTIONS}"
+    echo "${INPUT_BUILD_BRANCH}"
+    echo "${INPUT_DEPLOY_BRANCH}"
+    echo "${INPUT_ACTION_OPTIONS}"
+
+    update_build_data "revert"
 	echo "---TEST COMPLETE---"
 	exit 0
 }
@@ -206,14 +216,14 @@ while getopts 'dfm:o:h' c; do
 	m) append_commit "${OPTARG}" ;;
 	d) set_variable BRANCH_SET "${DEV_BRANCHES}" ;;
 	f) set_variable FRESH "true" ;;
-	o) set_variable HUGO_OPTIONS "${OPTARG}" ;;
+	o) set_variable INPUT_HUGO_BUILD_OPTIONS "${OPTARG}" ;;
 	h | *)
 		update_build_data "revert"
 		usage ;; esac
 done
 
 # optional debug mode to view all output, uncomment to use and fill function with desired tests
-# debug_mode
+debug_mode
 
 # separate the 'array' of branches into individual strings
 BASE_BRANCH=$(echo "${BRANCH_SET}" | cut -d" " -f1)
