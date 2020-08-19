@@ -20,28 +20,28 @@ inputs:
     required: true
     default: 'public'
 
-  build-branch:
+  build_branch:
     description: 'main repo branch used for building the site'
     required: true
     default: 'master'
 
-  deploy-branch:
+  deploy_branch:
     description: 'submodule repo branch to deploy site to'
     required: true
     default: 'master'
 
 	# -f | fresh, deletes public directory data before rebuild (skips files in 'do-not-delete-files' list)
 	# -m | message, appends to auto-build commit message, works like 'git -m'
-  action-options:
+  action_options:
     description: 'additional action options (single string, space between options)'
     required: false
 
   # these files are always skipped: ".", "..", ".git", "CNAME"'
-  do-not-delete-files:
+  do_not_delete_files:
     description: 'files to skip when cleaning deploy directory with "fresh" option'
     required: false
 
-  hugo-build-options:
+  hugo_build_options:
     description: 'include additional Hugo build options (single string, space between options)'
     required: false
 
