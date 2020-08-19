@@ -1,0 +1,24 @@
+{
+  "name": "hugo-deploy-to-pages",
+  "version": "1.0.0",
+  "description": "Action to build and deploy Hugo website, works with submodules",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aormsby/hugo-deploy-to-pages.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/aormsby/hugo-deploy-to-pages/issues"
+  },
+  "homepage": "https://github.com/aormsby/hugo-deploy-to-pages#readme",
+  "dependencies": {
+    "@actions/core": "^1.2.4",
+    "@actions/exec": "^1.0.4"
+  }
+}
