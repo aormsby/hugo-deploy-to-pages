@@ -7,23 +7,43 @@ branding:
   color: orange
 
 inputs:
-  # github_token:
-  #   description: 'Token for accessing the remote repo with authentication'
+  deploy_repo_github_token:
+    description: 'Authentication token for accessing deploy repo'
+    required: false
+
+  # theme_repo_github_token:
+  #   description: 'Authentication token for accessing theme repo'
   #   required: false
 
-  # upstream_repository:
-  #   description: 'Upstream repository, e.g. => aormsby/Fork-Sync-With-Upstream-action'
-  #   required: true
+  deploy_directory:
+    description: 'name of specified Hugo output folder'
+    required: true
+    default: 'public'
 
-  # upstream_branch:
-  #   description: 'Branch to pull from, default = master'
-  #   required: true
-  #   default: 'master'
+  build-branch:
+    description: 'main repo branch used for building the site'
+    required: true
+    default: 'master'
 
-  # target_branch:
-  #   description: 'Branch to push to, default = master'
-  #   required: true
-  #   default: 'master'
+  deploy-branch:
+    description: 'submodule repo branch to deploy site to'
+    required: true
+    default: 'master'
+
+	# -f | fresh, deletes public directory data before rebuild (skips files in 'do-not-delete-files' list)
+	# -m | message, appends to auto-build commit message, works like 'git -m'
+  action-options:
+    description: 'additional action options (single string, space between options)'
+    required: false
+
+  # these files are always skipped: ".", "..", ".git", "CNAME"'
+  do-not-delete-files:
+    description: 'files to skip when cleaning deploy directory with "fresh" option'
+    required: false
+
+  hugo-build-options:
+    description: 'include additional Hugo build options (single string, space between options)'
+    required: false
 
 runs:
   using: 'node12'

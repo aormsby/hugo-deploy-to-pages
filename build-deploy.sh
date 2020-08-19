@@ -172,7 +172,7 @@ usage() {
 	echo "$(printf "%s%s%s" "\n" "${S_B}${S_LG}USAGE:${S_N} ${0} [-d|-f] [ -m \"COMMIT_MESSAGE\" ] [ -o \"HUGO_OPTIONS\" ]" "\n")"
 	echo "  -d | dev, deploys to development branches set in DEV_BRANCHES list (default is PROD_BRANCHES)"
 	echo "  -f | fresh, deletes public directory data before rebuild (skips files in IGNORE_FILES list)"
-	echo "  -m | message, appends auto-build commit message, works like git -m"
+	echo "  -m | message, appends to auto-build commit message, works like git -m"
 	echo "  -o | hugo options, includes Hugo build options during deploy process (default none)"
 	echo "  -h | help and usage"
 	echo "$(printf "%s%s%s" "\n" "${S_B}${S_LG}EXAMPLE:${S_N} ${0} -d -f -m \"Deploying like a rockstar!\" -o \"--cleanDestinationDir\"" "\n")"
