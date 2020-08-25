@@ -2,27 +2,27 @@ const core = require('@actions/core');
 const exec = require('@actions/exec');
 
 async function main() {
-  try {
-    let myOutput = '';
-    let myError = '';
-    
-    const options = {};
-    options.listeners = {
-      stdout: (data) => {
-        myOutput += data.toString();
-      },
-      stderr: (data) => {
-        myError += data.toString();
-        core.error  = myError;
-      }
-    };
-    // options.cwd = './lib';
+    try {
+        let myOutput = '';
+        let myError = '';
 
-    await exec.exec('sh', [__dirname + '/build-deploy.sh'], options);
+        const options = {};
+        options.listeners = {
+            stdout: (data) => {
+                myOutput += data.toString();
+            },
+            stderr: (data) => {
+                myError += data.toString();
+                core.error = myError;
+            }
+        };
+        // options.cwd = './lib';
 
-  } catch (error) {
-    core.setFailed(error.message);
-  }
+        await exec.exec('sh', [__dirname + '/build-deploy.sh'], options);
+
+    } catch (error) {
+        core.setFailed(error.message);
+    }
 }
 
 main();

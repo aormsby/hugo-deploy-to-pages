@@ -1,18 +1,11 @@
 #!/bin/sh
 
-# region settings
-# BUILD/DEPLOY SETTINGS - edit as needed for your use case
-# INPUT_DEPLOY_DIRECTORY="public"         # name of output folder where git submodule is located
-IGNORE_FILES=". .. .git CNAME" "${INPUT_DO_NOT_DELETE_FILES}" # space-delimited array of files to protect when 'fresh' option is used
-# DEV_BRANCHES="dev dev"         # development branches to build on and push to, 1-root, 2-pubmodule
-# PROD_BRANCHES="master master"  # production branches to build on and push to, 1-root, 2-pubmodule
-
-# endregion
-
 # region script vars
 # vars used by script, do no edit
-FRESH="false"
-# INPUT_HUGO_BUILD_OPTIONS=""
+FRESH="${INPUT_FRESH_BUILD}"
+IGNORE_FILES=". .. .git CNAME ${INPUT_DO_NOT_DELETE_FILES}" # space-delimited array of files to protect when 'fresh' option is used
+DEPLOY_TO_SUBMODULE="false" # false by default, set to true if input_deploy_directory matches a repo submodule
+
 # console text styles
 S_LY="\033[93m"
 S_LR="\033[91m"
@@ -22,19 +15,38 @@ S_LG="\033[32m"
 # endregion
 
 # region script functions
+configure_git_user() {
+    git config --global user.name "${INPUT_GIT_EMAIL}"
+    git config --global user.email "${INPUT_GIT_USER}"
+}
+
+check_for_deploy_submodule() {
+    # checks if the .gitmodules file contains a submodule at the deploy directory path
+    TARGET_REPO_SUBMODULE=$(git config --file .gitmodules --get-regexp path | grep "${INPUT_DEPLOY_DIRECTORY}$" )
+    if [ -n "${TARGET_REPO_SUBMODULE}" ]; then
+        DEPLOY_TO_SUBMODULE="true"
+    fi
+}
+
 # retrieve build number from build.dat
-get_build_data() {
+open_build_data() {
 	if [ ! -f "build.dat" ]; then
 		BUILD_NUMBER=1
 	else
 		BUILD_NUMBER=$(($(cat build.dat) + 1))
 	fi
+}
 
-	COMMIT_MESSAGE="site build and deploy #${BUILD_NUMBER}"
+set_commit_message() {
+    COMMIT_MESSAGE="site build and deploy #${BUILD_NUMBER}"
+
+    if [ -n "${INPUT_COMMIT_MESSAGE}" ]; then
+        COMMIT_MESSAGE="${COMMIT_MESSAGE} - ${INPUT_COMMIT_MESSAGE}"
+    fi
 }
 
 # update build number before operation begins
-update_build_data() {
+close_build_data() {
 	# reset build number on fail
 	if [ "${1}" = "revert" ]; then
 		BUILD_NUMBER=$((${BUILD_NUMBER} - 1))
@@ -42,57 +54,45 @@ update_build_data() {
 	fi
 
 	# store build number in build.dat
-	echo "${BUILD_NUMBER}" >build.dat || fail_and_exit "warn" "Build number could not be updated for some reason."
+	echo "${BUILD_NUMBER}" >build.dat || fail_and_exit "warn" "build number update" "Build number could not be updated for some reason. Process may have completed anyway."
 }
 
 # make sure the active local branches match the settings (and exit if they don't)
 check_branches() {
-	# set public or base module as active string
-	if [ "${2}" = "public" ]; then
-		SUBDIR="-C ${INPUT_DEPLOY_DIRECTORY}/"
-	else
-		SUBDIR=""
-	fi
+  
+    # ensure correct build branch is checked out
+    if [ $(git branch --show-current) != "${INPUT_BUILD_BRANCH}" ]; then
+        git fetch origin ${INPUT_BUILD_BRANCH}
+        git checkout ${INPUT_BUILD_BRANCH} || fail_and_exit "error" "branch check" "Repo failed to switch to branch '${INPUT_BUILD_BRANCH}'. Does it exist?"
+        # echo "Build branch '${INPUT_BUILD_BRANCH}' checked out" 1>&1
+    fi
 
-	# check active branch
-	CURRENT_BRANCH="git ${SUBDIR} branch --show-current"
-	if [ "$(${CURRENT_BRANCH})" != "${1}" ]; then
-		fail_and_exit "warn" "Active ${2} branch does not match deploy settings. Switch public repo to '${1}' branch and run again."
-	fi
-}
+    # if using submodule, ensure target deploy branch is checked out
+    if [ "${DEPLOY_TO_SUBMODULE}" = "true" ]; then
+        # set fetch spec to get all remote heads for the deploy submodule, not limited to what the checkout sets
+        git -C ${INPUT_DEPLOY_DIRECTORY} config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
 
-# check if branches are up to date with remote (and exit if they aren't)
-check_remote_status() {
-	# set public or base module as active string
-	if [ "${2}" = "public" ]; then
-		SUBDIR="-C ${INPUT_DEPLOY_DIRECTORY}/"
-	else
-		SUBDIR=""
-	fi
+        #sync and update the deploy submodule
+        git submodule sync --recursive ${INPUT_DEPLOY_DIRECTORY}
+        git submodule update --init --recursive --remote ${INPUT_DEPLOY_DIRECTORY}
 
-	git fetch # update local data (no merge)
-
-	# get commit hash data from local, remote, and their common ancestor to check branch status
-	A=$(git ${SUBDIR} rev-parse ${1})
-	B=$(git ${SUBDIR} rev-parse origin/${1})
-	C=$(git ${SUBDIR} merge-base ${1} origin/${1})
-
-	# compare hashes, only fail if local is out of date or local and remote have diverged
-	if [ "${A}" = "${B}" ]; then
-		:
-	elif [ "${A}" = "${C}" ]; then
-		fail_and_exit "warn" "Active ${2} branch is out of date. Pull latest and try again."
-	elif [ "${B}" = "${C}" ]; then
-		:
-	else
-		fail_and_exit "warn" "Active ${2} branch is in a divergent state. Pull, resolve, and try again."
-	fi
+        # checkout specified submodule deploy branch
+        git -C ${INPUT_DEPLOY_DIRECTORY} checkout ${INPUT_DEPLOY_BRANCH} || fail_and_exit "error" "branch check" "Submodule repo failed to switch to branch '${INPUT_DEPLOY_BRANCH}'. Does it exist?"
+        # echo "Deploy branch '${INPUT_DEPLOY_BRANCH}' checked out" 1>&1
+    fi
 }
 
 # on 'fresh', delete public data before rebuild (ignores files by name from settings 'array')
 clear_pub_data() {
+    # display ignored files
+    echo "'Fresh' option enabled. Deleting previous build files." 1>&1
+    for i in $(echo "${IGNORE_FILES}" | sed "s/ /\\ /g"); do
+		echo "ignored : ${i}"
+	done
+    unset i
+
 	# get string of filenames at submodule path
-	FILE_LIST=$(ls -a "${INPUT_DEPLOY_DIRECTORY}/")
+	FILE_LIST=$(ls -a "${INPUT_DEPLOY_DIRECTORY}")
 
 	# remove the ignored filenames from the string list
 	for i in $(echo "${IGNORE_FILES}" | sed "s/ /\\ /g"); do
@@ -101,101 +101,63 @@ clear_pub_data() {
 	unset i
 
 	# delete remaining files in the filename list
-	for f in $(echo "${FILE_LIST}" | sed "s/ /\\ /g"); do
-		rm -r "${INPUT_DEPLOY_DIRECTORY:?}/${f}"
+	for i in $(echo "${FILE_LIST}" | sed "s/ /\\ /g"); do
+        echo "deleted => ${i}"
+		rm -r "${INPUT_DEPLOY_DIRECTORY:?}/${i}"
 	done
-	unset f
+	unset i
+
+    echo "'Fresh' file deletion complete" 1>&1
 }
 
 # 'hugo build' plus any optional arguments
 build_site() {
-	hugo "${INPUT_HUGO_BUILD_OPTIONS}" || fail_and_exit "hugo"
+    echo "running command: hugo ${INPUT_HUGO_BUILD_OPTIONS}"
+	hugo "${INPUT_HUGO_BUILD_OPTIONS}" || fail_and_exit "error" "hugo" "Hugo build failed. Check output for details."
 }
 
 # add, commit, and push, baby!
 deploy_to_remote() {
-	git_add_commit "${INPUT_DEPLOY_DIRECTORY}" # add and commit files to public module
-	git_add_commit                    # add and commit files to base module
+    # add and commit deploy module
+    if [ "${DEPLOY_TO_SUBMODULE}" = "true" ]; then
+        git -C ${INPUT_DEPLOY_DIRECTORY} add . || fail_and_exit "error" "git add files to submodule deploy repo" "Files could not be staged for some reason."
+	    git -C ${INPUT_DEPLOY_DIRECTORY} commit -m "${COMMIT_MESSAGE}" || fail_and_exit "safe" "git commit to submodule deploy repo" "No changes from build. Nothing to commit. Exiting without deploy."
+        git -C ${INPUT_DEPLOY_DIRECTORY} push --recurse-submodules=on-demand || fail_and_exit "error" "git push and deploy" "Unable to push build. See output for details."
+        # push to deploy submodule before the main repo to ensure the referenced commit is updated
+        # HACK: For whatever reason, a normal 'push --recurse-submodules=on-demand' from the main repo fails when main repo 
+        # and submodule branch names don't match. It's a frustrating result of using Github's checkout action. But this is an okay workaround.
 
-	# Push base and public submodule data recursively
-	git push -u origin "${BASE_BRANCH}" --recurse-submodules=on-demand || fail_and_exit "git push to remote"
-}
+        # add and commit only the deploy directory to the main module - updates the submodule hash
+        git add ${INPUT_DEPLOY_DIRECTORY} || fail_and_exit "error" "git add files to main build repo" "Files could not be staged for some reason."
+	    git commit -m "${COMMIT_MESSAGE}" || fail_and_exit "safe" "git commit to main build repo" "No changes from build. Nothing to commit. Exiting without deploy."
+    else
+        # add all changes if no deploy submodule
+        git add . || fail_and_exit "error" "git add files to main build repo" "Files could not be staged for some reason."
+	    git commit -m "${COMMIT_MESSAGE}" || fail_and_exit "safe" "git commit to main build repo" "No changes from build. Nothing to commit. Exiting without deploy."  
+    fi
 
-# add and commit steps for each git module
-git_add_commit() {
-	# set public or base module as active string
-	if [ -n "${1}" ]; then
-		SUBDIR="-C ${1}/"
-		WHICH="public"
-	else
-		SUBDIR=""
-		WHICH="base"
-	fi
-
-	# git add all files
-	git ${SUBDIR} add . || fail_and_exit "git add to ${WHICH} repo"
-
-	# git commit with message
-	git ${SUBDIR} commit -m "${COMMIT_MESSAGE}" || fail_and_exit "git commit to ${WHICH} repo"
-}
-
-# add custom commit message (optional)
-append_commit() {
-	COMMIT_MESSAGE="${COMMIT_MESSAGE} - $1"
-}
-
-# generic function for setting variables based on script options
-set_variable() {
-	varname=$1
-	shift
-	eval "$varname=\"$*\""
+    # push main repo and any changed submodules (apart from deploy repo)
+	git push --recurse-submodules=on-demand || fail_and_exit "error" "git push and deploy" "Unable to push build. See output for details."
 }
 
 # exit with a console message on any failed action
 fail_and_exit() {
-	if [ "${1}" = "warn" ]; then
-		EXIT_LOG=$(printf "%s%s%s" "\n" "${S_B}${S_LY}WARNING:${S_N} ${2}" "\n")
-	else
-		EXIT_LOG=$(printf "%s%s%s" "\n" "${S_B}${S_LR}ERROR:${S_N} Deploy process failed during '${1}' step. Fix issues and try again." "\n")
-	fi
+    case "${1}" in
+        "warn")     EXIT_LOG=$(printf "%s%s" "\n" "${S_B}${S_LY}WARNING:${S_N}")    ;;
+        "error")    EXIT_LOG=$(printf "%s%s" "\n" "${S_B}${S_LR}ERROR:${S_N}")      ;;
+        "safe")     EXIT_LOG=$(printf "%s%s" "\n" "${S_B}${S_LG}SAFE EXIT:${S_N}")      ;;
+    esac
 
-	if [ "${1}" = "git commit to public repo" ]; then
-		EXIT_LOG=$(printf "%s%s%s" "${EXIT_LOG}" "(Note: Commit action will fail if there are no local changes.)" "\n")
-	fi
+    EXIT_LOG=$(printf "%s%s" "${EXIT_LOG} Deploy process exited during '${2}' step. ${3}" "\n")
 
-	echo "${EXIT_LOG}"
-	update_build_data "revert"
+	echo "${EXIT_LOG}" 1>&1
+	close_build_data "revert"
+
+    if [ "${1}" = "safe" ]; then
+        exit 0
+    fi
+
 	exit 1
-}
-
-# usage printout on -h option
-usage() {
-	echo "$(printf "%s%s%s" "\n" "${S_B}${S_LG}USAGE:${S_N} ${0} [-d|-f] [ -m \"COMMIT_MESSAGE\" ] [ -o \"INPUT_HUGO_BUILD_OPTIONS\" ]" "\n")"
-	echo "  -d | dev, deploys to development branches set in DEV_BRANCHES list (default is PROD_BRANCHES)"
-	echo "  -f | fresh, deletes public directory data before rebuild (skips files in IGNORE_FILES list)"
-	echo "  -m | message, appends to auto-build commit message, works like git -m"
-	echo "  -o | hugo options, includes Hugo build options during deploy process (default none)"
-	echo "  -h | help and usage"
-	echo "$(printf "%s%s%s" "\n" "${S_B}${S_LG}EXAMPLE:${S_N} ${0} -d -f -m \"Deploying like a rockstar!\" -o \"--cleanDestinationDir\"" "\n")"
-	exit 2
-}
-
-# optional debug mode to view all output, uncomment functional to use and fill with desired tests
-debug_mode() {
-	echo "---TEST MODE---"
-	set -x # outputs all commands called in script to the console
-	# fill me out! :)
-    echo "${INPUT_DEPLOY_DIRECTORY}"
-    echo "${INPUT_DO_NOT_DELETE_FILES}"
-    echo "${INPUT_IGNORE_FILES}"
-    echo "${INPUT_HUGO_BUILD_OPTIONS}"
-    echo "${INPUT_BUILD_BRANCH}"
-    echo "${INPUT_DEPLOY_BRANCH}"
-    echo "${INPUT_ACTION_OPTIONS}"
-
-    update_build_data "revert"
-	echo "---TEST COMPLETE---"
-	exit 0
 }
 # endregion
 
@@ -203,39 +165,20 @@ debug_mode() {
 ####################################################################
 # Main script starts here
 
-# default values, possibly changed by 'getopts' below
-BRANCH_SET="${PROD_BRANCHES}"
+# set commit credentials
+configure_git_user
 
-# retrieve build number from build.dat and update value before operation begins
-get_build_data
-update_build_data
-
-# optional arguments, see 'usage' (-h)
-while getopts 'dfm:o:h' c; do
-	case $c in
-	m) append_commit "${OPTARG}" ;;
-	d) set_variable BRANCH_SET "${DEV_BRANCHES}" ;;
-	f) set_variable FRESH "true" ;;
-	o) set_variable INPUT_HUGO_BUILD_OPTIONS "${OPTARG}" ;;
-	h | *)
-		update_build_data "revert"
-		usage ;; esac
-done
-
-# optional debug mode to view all output, uncomment to use and fill function with desired tests
-debug_mode
-
-# separate the 'array' of branches into individual strings
-BASE_BRANCH=$(echo "${BRANCH_SET}" | cut -d" " -f1)
-PUB_BRANCH=$(echo "${BRANCH_SET}" | cut -d" " -f2)
+# check if we're deploying to a submodule
+check_for_deploy_submodule
 
 # make sure the active local branches match the settings (and exit if they don't)
-check_branches "${BASE_BRANCH}" "base"
-check_branches "${PUB_BRANCH}" "public"
+check_branches
 
-# check if branches are up to date with remote (and exit if they aren't)
-check_remote_status "${BASE_BRANCH}" "base"
-check_remote_status "${PUB_BRANCH}" "public"
+# retrieve build number from build.dat and update value before operation begins,
+# set commit message data
+open_build_data
+set_commit_message
+close_build_data
 
 # on 'fresh', delete public data before rebuild (ignores files by name from settings 'array')
 if [ "${FRESH}" = "true" ]; then
@@ -248,3 +191,5 @@ build_site
 # add, commit, and push, baby!
 deploy_to_remote
 # endregion
+
+# TODO: @v2 => pull site repo, create a new 'build branch', and build from there? to avoid pushing to the main branch?

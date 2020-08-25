@@ -7,43 +7,51 @@ branding:
   color: orange
 
 inputs:
-  deploy_repo_github_token:
-    description: 'Authentication token for accessing deploy repo'
-    required: false
-
-  # theme_repo_github_token:
-  #   description: 'Authentication token for accessing theme repo'
-  #   required: false
-
   deploy_directory:
-    description: 'name of specified Hugo output folder'
+    description: 'Name of Hugo build output folder (path from root directory)'
     required: true
     default: 'public'
 
   build_branch:
-    description: 'main repo branch used for building the site'
+    description: 'Main repo branch used for building the site'
     required: true
     default: 'master'
 
   deploy_branch:
-    description: 'submodule repo branch to deploy site to'
-    required: true
+    description: 'Branch to deploy to if pushing build to submodule'
+    required: false
     default: 'master'
 
-	# -f | fresh, deletes public directory data before rebuild (skips files in 'do-not-delete-files' list)
-	# -m | message, appends to auto-build commit message, works like 'git -m'
-  action_options:
-    description: 'additional action options (single string, space between options)'
+    # please use with caution
+  fresh_build:
+    description: 'If true, clear public directory data before rebuild (ignores files in do-not-delete-files list)'
+    required: false
+    default: false
+
+    # input as a single string with filenames separated by a space
+    # only exact file names are supported at this time
+    # these files are already skipped: '. .. .git CNAME'
+  do_not_delete_files:
+    description: 'Files to skip when cleaning deploy directory with "fresh" option'
     required: false
 
-  # these files are always skipped: ".", "..", ".git", "CNAME"'
-  do_not_delete_files:
-    description: 'files to skip when cleaning deploy directory with "fresh" option'
+  commit_message:
+    description: 'Appends a custom message to the auto-build commit message'
     required: false
 
   hugo_build_options:
-    description: 'include additional Hugo build options (single string, space between options)'
+    description: 'Include additional Hugo build options (single string, space between options)'
     required: false
+
+  git_user:
+    description: 'Git user credentials for sigining commit'
+    required: false
+    default: 'Github Action - Hugo Build and Deploy'
+
+  git_email:
+    description: 'Git email credentials for sigining commit'
+    required: false
+    default: 'action@github.com'
 
 runs:
   using: 'node12'
