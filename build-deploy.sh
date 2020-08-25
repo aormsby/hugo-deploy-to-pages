@@ -38,7 +38,7 @@ open_build_data() {
 }
 
 set_commit_message() {
-    COMMIT_MESSAGE="site build and deploy #${BUILD_NUMBER}"
+    COMMIT_MESSAGE="auto-build and deploy #${BUILD_NUMBER}"
 
     if [ -n "${INPUT_COMMIT_MESSAGE}" ]; then
         COMMIT_MESSAGE="${COMMIT_MESSAGE} - ${INPUT_COMMIT_MESSAGE}"
