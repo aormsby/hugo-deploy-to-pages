@@ -28,11 +28,17 @@ This action does not include the checkout step. For this, I used the [actions/ch
 
 ### Variable Notes
 - **deploy_directory** -> Where you expect Hugo to output your build. Hugo builds default to 'public', but if you change that location you need to set it here. This input is also used to check if you are deploying your build to a submodule (no extra work needed).
+
 - **build_branch** -> The branch to build from in the main project.
+
 - **deploy_branch** -> The branch to deploy the build output to - only used if deploying to a specific branch on a submodule.
+
 - **fresh_build** -> Clears out the specified deploy directory before running the hugo build (ignores **do_not_delete_files**).
-- **do_not_delete_files** -> Treat this as a single string where each file or directory you wish to save is separated by a space. Include file extensions.
+
+- **do_not_delete_files** -> Treat this as a single string where each file or directory you wish to save is separated by a space. Include file extensions. These files are always ignored -- '. .. .git CNAME'
+
 - **hugo_build_options** -> behaves the same as normal [hugo build options](https://gohugo.io/commands/hugo/)
+
 - **commit_message** -> appends a custom commit message to the default - 'auto-build and deploy #??'
 
 ## Build and Deploy Process - Quick Overview
@@ -54,7 +60,7 @@ Right now, the `main.js` script only exists to execute `build-deploy.sh`. It's p
 
 ## Sample Workflows
 
-**deploying to a 'live' site with default settings**
+**deploying to a 'live' site with default settings:**
 ```yaml
 on:
   schedule:
@@ -96,7 +102,7 @@ jobs:
       run: date
 ```
 
-**alternatively, if you want to build and deploy to a different output folder on a dev branch**
+**alternatively, if you want to build and deploy to a different output folder on a dev branch:**
 ```yaml
 on:
   schedule:
