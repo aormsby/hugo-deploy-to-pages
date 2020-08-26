@@ -2,7 +2,7 @@
 
 **Currently tagged as 'v1beta'. It does work quite well, but it was tested in a limited environment. Please be aware that issues could come up.**
 
-An action for Hugo websites. Build your site from whichever repo branch you choose and deploy to a GH-Pages repo. This action supports deploying to the main site repo or to a repo submodule. No extra work needed for submodule deploys. It's intended use is to simply autmoate Hugo site builds.
+An action for Hugo websites. Build your site from whichever repo branch you choose and deploy to a GH-Pages repo. This action supports deploying to the main site repo or to a repo submodule. No extra work is needed for submodule deploys. It's intended use is to simply automate Hugo site builds.
 
 <a href="https://www.buymeacoffee.com/aormsby" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-green.png" alt="Buy Me A Coffee" style="height: 51px !important;width: 217px !important;" ></a>
 
@@ -37,7 +37,7 @@ This action does not include the checkout step. For this, I used the [actions/ch
 
 ## Build and Deploy Process - Quick Overview
 
-Right now, the `main.js` script only exists to execute `build-deploy.sh`. It's possible that future updates will add functionality. After checking out the repos and any submodules, the shell script does the following:
+Right now, the `main.js` script only exists to execute `build-deploy.sh`. It's possible that future updates may add functionality. After checking out the repos and any submodules, the shell script does the following:
 
 1. Set the git user and email config.
 2. Check if you intend to deploy to a submodule or not (it's a pretty smart script).
