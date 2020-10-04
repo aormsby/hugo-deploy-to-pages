@@ -8,19 +8,17 @@ branding:
 
 inputs:
   deploy_directory:
-    description: 'Name of Hugo build output folder (path from root directory)'
+    description: 'Name of Hugo build output folder (path from root directory), Hugo's default is "public"'
     required: true
-    default: 'public'
 
   build_branch:
-    description: 'Main repo branch used for building the site'
+    description: 'Repo branch used for site build'
     required: true
-    default: 'master'
 
   deploy_branch:
     description: 'Branch to deploy to if pushing build to submodule'
     required: false
-    default: 'master'
+    default: 'main'
 
     # please use with caution
   fresh_build:
