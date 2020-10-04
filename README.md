@@ -16,9 +16,9 @@ This action does not include the checkout step. For this, I used the [actions/ch
 
 | Name                | Required?            | Default                                 | Example                                |
 | ------------------- | :------------------: | --------------------------------------- | -------------------------------------- |
-| deploy_directory    | :white_check_mark:   | 'public'                                | 'public' - (hugo deploy directory name)|
-| build_branch        | :white_check_mark:   | 'master'                                | 'dev' - (branch name)                  |
-| deploy_branch       |                      | 'master'                                | 'live' - (branch name)                 |
+| deploy_directory    | :white_check_mark:   |                                         | 'public' - (hugo deploy directory name)|
+| build_branch        | :white_check_mark:   |                                         | 'dev' - (branch name)                  |
+| deploy_branch       |                      | 'main'.                                 | 'live' - (branch name)                 |
 | fresh_build         |                      | false                                   | true / false                           |
 | do_not_delete_files |                      |                                         | 'ignore-me.txt posts static.css'.      |
 | hugo_build_options  |                      |                                         | '-D --minify --ignoreCache'            |
@@ -27,11 +27,11 @@ This action does not include the checkout step. For this, I used the [actions/ch
 | git_email           |                      | 'action@github.com'                     | 'ormsbyadam@gmail.com'                 |
 
 ### Variable Notes
-- **deploy_directory** -> Where you expect Hugo to output your build. Hugo builds default to 'public', but if you change that location you need to set it here. This input is also used to check if you are deploying your build to a submodule (no extra work needed).
+- **deploy_directory** -> Where you expect Hugo to output your build. Hugo builds default to 'public', but if you change that location you need to set it here. This input also checks if your deploy directory points to a submodule (no extra work needed).
 
 - **build_branch** -> The branch to build from in the main project.
 
-- **deploy_branch** -> The branch to deploy the build output to - only used if deploying to a specific branch on a submodule.
+- **deploy_branch** -> The branch to deploy the build output to. This only used if deploying to a specific branch on a submodule. Otherwise, it defaults to 'main'.
 
 - **fresh_build** -> Clears out the specified deploy directory before running the hugo build (ignores **do_not_delete_files**).
 
