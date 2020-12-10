@@ -6,6 +6,8 @@
 if [ !"${GITHUB_ACTIONS}" ]; then
     INPUT_DEPLOY_BRANCH="test2"
     INPUT_SOURCE_BRANCH="master"
+	# SOURCE_HASH="jfkdlf"
+	# INPUT_COMMIT_MESSAGE="insert commit message here"
 fi
 
 # region script vars
@@ -53,6 +55,18 @@ read_build_data() {
 	# fi
 }
 
+# if no new commits, exit deploy process safely
+check_source_commits() {
+    # no previous deploys, continue with process
+	if [ "${LAST_HASH}" = 0 ]; then
+		return
+    fi
+    
+	SOURCE_HASH=$(git show-ref --hash --abbrev "heads/${INPUT_SOURCE_BRANCH}")
+	if [ "${SOURCE_HASH}" = "${LAST_HASH}" ]; then
+		fail_and_exit "safe" "check for new source commits" "Previously built from the latest commit on source branch. Exiting without deploy."
+	fi
+}
 set_commit_message() {
 
     COMMIT_MESSAGE="auto-build #${BUILD_NUMBER} - ${INPUT_SOURCE_BRANCH} @ ${SOURCE_HASH}"
