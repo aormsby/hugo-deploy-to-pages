@@ -1,5 +1,12 @@
 #!/bin/sh
 
+### TODO: switch to deploy branch, merge from source branch (force/rebase?), then build?
+
+# set local env vars here
+if [ !"${GITHUB_ACTIONS}" ]; then
+    INPUT_DEPLOY_BRANCH="test2"
+fi
+
 # region script vars
 # vars used by script, do no edit
 FRESH="${INPUT_FRESH_BUILD}"
@@ -28,6 +35,7 @@ check_for_deploy_submodule() {
     fi
 }
 
+### TODO: rename 'build.dat' to avoid conflicts with other possible 'build.dat' Action files
 # retrieve build number from build.dat
 open_build_data() {
 	if [ ! -f "build.dat" ]; then
@@ -57,29 +65,39 @@ close_build_data() {
 	echo "${BUILD_NUMBER}" >build.dat || fail_and_exit "warn" "build number update" "Build number could not be updated for some reason. Process may have completed anyway."
 }
 
-# make sure the active local branches match the settings (and exit if they don't)
+# make sure the active local branches match the settings (and exit if they can't be switched to)
 check_branches() {
-  
+    # ensure correct deploy branch is checked out, create if it doesn't exist
+    if [ $(git branch --show-current) != "${INPUT_DEPLOY_BRANCH}" ]; then
+        git fetch origin ${INPUT_DEPLOY_BRANCH}
+		git checkout ${INPUT_DEPLOY_BRANCH} || git checkout -b ${INPUT_DEPLOY_BRANCH} || fail_and_exit "error" "branch check" "Repo failed to switch to branch '${INPUT_DEPLOY_BRANCH}'."
+    fi
+    # echo "Build branch '${INPUT_DEPLOY_BRANCH}' checked out" 1>&1
+
+    #________#_#_#_#_#_#_#_
+
     # ensure correct build branch is checked out
-    if [ $(git branch --show-current) != "${INPUT_BUILD_BRANCH}" ]; then
-        git fetch origin ${INPUT_BUILD_BRANCH}
-        git checkout ${INPUT_BUILD_BRANCH} || fail_and_exit "error" "branch check" "Repo failed to switch to branch '${INPUT_BUILD_BRANCH}'. Does it exist?"
-        # echo "Build branch '${INPUT_BUILD_BRANCH}' checked out" 1>&1
-    fi
+    # if [ $(git branch --show-current) != "${INPUT_BUILD_BRANCH}" ]; then
+    #     git fetch origin ${INPUT_BUILD_BRANCH}
+    #     git checkout ${INPUT_BUILD_BRANCH} || fail_and_exit "error" "branch check" "Repo failed to switch to branch '${INPUT_BUILD_BRANCH}'. Does it exist?"
+    #     # echo "Build branch '${INPUT_BUILD_BRANCH}' checked out" 1>&1
+    # fi
 
-    # if using submodule, ensure target deploy branch is checked out
-    if [ "${DEPLOY_TO_SUBMODULE}" = "true" ]; then
-        # set fetch spec to get all remote heads for the deploy submodule, not limited to what the checkout sets
-        git -C ${INPUT_DEPLOY_DIRECTORY} config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
+    # ### TODO: change 'deploy branch' to... something else like 'submodule branch'
 
-        #sync and update the deploy submodule
-        git submodule sync --recursive ${INPUT_DEPLOY_DIRECTORY}
-        git submodule update --init --recursive --remote ${INPUT_DEPLOY_DIRECTORY}
+    # # if using submodule, ensure target deploy branch is checked out
+    # if [ "${DEPLOY_TO_SUBMODULE}" = "true" ]; then
+    #     # set fetch spec to get all remote heads for the deploy submodule, not limited to what the checkout sets
+    #     git -C ${INPUT_DEPLOY_DIRECTORY} config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
 
-        # checkout specified submodule deploy branch
-        git -C ${INPUT_DEPLOY_DIRECTORY} checkout ${INPUT_DEPLOY_BRANCH} || fail_and_exit "error" "branch check" "Submodule repo failed to switch to branch '${INPUT_DEPLOY_BRANCH}'. Does it exist?"
-        # echo "Deploy branch '${INPUT_DEPLOY_BRANCH}' checked out" 1>&1
-    fi
+    #     #sync and update the deploy submodule
+    #     git submodule sync --recursive ${INPUT_DEPLOY_DIRECTORY}
+    #     git submodule update --init --recursive --remote ${INPUT_DEPLOY_DIRECTORY}
+
+    #     # checkout specified submodule deploy branch
+    #     git -C ${INPUT_DEPLOY_DIRECTORY} checkout ${INPUT_DEPLOY_BRANCH} || fail_and_exit "error" "branch check" "Submodule repo failed to switch to branch '${INPUT_DEPLOY_BRANCH}'. Does it exist?"
+    #     # echo "Deploy branch '${INPUT_DEPLOY_BRANCH}' checked out" 1>&1
+    # fi
 }
 
 # on 'fresh', delete public data before rebuild (ignores files by name from settings 'array')
@@ -172,11 +190,13 @@ configure_git_user
 check_for_deploy_submodule
 
 # make sure the active local branches match the settings (and exit if they don't)
+### TODO: change input to 'source branch' and 'deploy branch', change/create branches for building
 check_branches
 
-# retrieve build number from build.dat and update value before operation begins,
-# set commit message data
+# retrieve build number from build.dat and update value before operation begins
+# and set commit message data
 open_build_data
+check_for_source_updates
 set_commit_message
 close_build_data
 
