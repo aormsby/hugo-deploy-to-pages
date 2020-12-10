@@ -5,6 +5,7 @@
 # set local env vars here
 if [ !"${GITHUB_ACTIONS}" ]; then
     INPUT_DEPLOY_BRANCH="test2"
+    INPUT_SOURCE_BRANCH="master"
 fi
 
 # region script vars
