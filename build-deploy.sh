@@ -69,14 +69,18 @@ close_build_data() {
 # make sure the active local branches match the settings (and exit if they can't be switched to)
 check_branches() {
 	# ensure source branch exists, fail if it doesn't
-	if [ !$(git branch --list "${INPUT_SOURCE_BRANCH}") ]; then
+	SOURCE_CHECK=$(git branch --list "${INPUT_SOURCE_BRANCH}")
+	if [ -z "${SOURCE_CHECK}" ]; then
 		fail_and_exit "error" "branch check" "Source branch '${INPUT_SOURCE_BRANCH}' could not be found."
 	fi
 
     # ensure correct deploy branch is checked out, create if it doesn't exist
     if [ $(git branch --show-current) != "${INPUT_DEPLOY_BRANCH}" ]; then
         git fetch origin ${INPUT_DEPLOY_BRANCH}
-		git checkout ${INPUT_DEPLOY_BRANCH} || git checkout -b ${INPUT_DEPLOY_BRANCH} || fail_and_exit "error" "branch check" "Repo failed to switch to branch '${INPUT_DEPLOY_BRANCH}'."
+		
+		git checkout ${INPUT_DEPLOY_BRANCH} || \
+			(echo "Creating new branch '${INPUT_DEPLOY_BRANCH}'" && git checkout -b ${INPUT_DEPLOY_BRANCH}) || \
+				fail_and_exit "error" "branch check" "Repo failed to switch to branch '${INPUT_DEPLOY_BRANCH}'."
     fi
     # echo "Build branch '${INPUT_DEPLOY_BRANCH}' checked out" 1>&1
 
