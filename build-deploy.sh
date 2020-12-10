@@ -36,34 +36,37 @@ check_for_deploy_submodule() {
     fi
 }
 
-### TODO: rename 'build.dat' to avoid conflicts with other possible 'build.dat' Action files
-# retrieve build number from build.dat
-open_build_data() {
-	if [ ! -f "build.dat" ]; then
+# retrieve last commit hash from hugo-deploy.dat
+read_build_data() {
+	if [ -f "hugo-deploy.dat" ]; then
+		BUILD_NUMBER=$(($(head -1 hugo-deploy.dat) + 1))
+		LAST_HASH=$(tail -1 hugo-deploy.dat)
+    else
 		BUILD_NUMBER=1
-	else
-		BUILD_NUMBER=$(($(cat build.dat) + 1))
+        LAST_HASH=0
 	fi
+
+	# if [ ! -f "build.dat" ]; then
+	# 	BUILD_NUMBER=1
+	# else
+	# 	BUILD_NUMBER=$(($(cat build.dat) + 1))
+	# fi
 }
 
 set_commit_message() {
-    COMMIT_MESSAGE="auto-build and deploy #${BUILD_NUMBER}"
+
+    COMMIT_MESSAGE="auto-build #${BUILD_NUMBER} - ${INPUT_SOURCE_BRANCH} @ ${SOURCE_HASH}"
 
     if [ -n "${INPUT_COMMIT_MESSAGE}" ]; then
-        COMMIT_MESSAGE="${COMMIT_MESSAGE} - ${INPUT_COMMIT_MESSAGE}"
+        COMMIT_MESSAGE="${COMMIT_MESSAGE}\n\n${INPUT_COMMIT_MESSAGE}"
     fi
+	echo "${COMMIT_MESSAGE}"
 }
 
 # update build number before operation begins
-close_build_data() {
-	# reset build number on fail
-	if [ "${1}" = "revert" ]; then
-		BUILD_NUMBER=$((${BUILD_NUMBER} - 1))
-		echo "${BUILD_NUMBER}" >build.dat
-	fi
-
-	# store build number in build.dat
-	echo "${BUILD_NUMBER}" >build.dat || fail_and_exit "warn" "build number update" "Build number could not be updated for some reason. Process may have completed anyway."
+write_build_data() {
+	# store build number in hugo-deploy.dat
+	echo "${BUILD_NUMBER}\n${SOURCE_HASH}" >hugo-deploy.dat || fail_and_exit "warn" "build number update" "Build number could not be updated for some reason. Process may have completed anyway."
 }
 
 # make sure the active local branches match the settings (and exit if they can't be switched to)
@@ -204,11 +207,10 @@ check_for_deploy_submodule
 check_branches
 
 # retrieve build number from build.dat and update value before operation begins
-# and set commit message data
-open_build_data
-check_for_source_updates
-set_commit_message
-close_build_data
+read_build_data
+check_source_commits
+
+merge_from_source
 
 # on 'fresh', delete public data before rebuild (ignores files by name from settings 'array')
 if [ "${FRESH}" = "true" ]; then
@@ -217,9 +219,15 @@ fi
 
 # 'hugo build' plus any optional arguments
 build_site
+# set commit message using deploy data
+set_commit_message
+
 
 # add, commit, and push, baby!
 deploy_to_remote
+
+# write new build data on successful deploy
+write_build_data
 # endregion
 
 # TODO: @v2 => pull site repo, create a new 'build branch', and build from there? to avoid pushing to the main branch?
