@@ -1,8 +1,8 @@
 # IGNORE - set env vars here for local testing only
 if [ !"${GITHUB_ACTIONS}" ]; then
-    INPUT_DEPLOY_BRANCH="test2"
+    INPUT_DEPLOY_BRANCH="test3"
     INPUT_SOURCE_BRANCH="master"
-    INPUT_SUBMODULE_BRANCH="master"
+    INPUT_SUBMODULE_BRANCH="test3"
     INPUT_HUGO_BUILD_DIRECTORY="public"
 	# INPUT_COMMIT_MESSAGE="insert commit message here"
 	# SOURCE_HASH="jfkdlf"
@@ -52,6 +52,8 @@ read_build_data() {
 
 # if no new commits, exit deploy process safely
 check_source_commits() {
+	SOURCE_HASH=$(git show-ref --hash --abbrev "heads/${INPUT_SOURCE_BRANCH}")
+    
     # no previous deploys, continue with process
 	if [ "${LAST_HASH}" = 0 ]; then
 		return
@@ -89,13 +91,26 @@ check_branches() {
 
     # ensure correct deploy branch is checked out, create if it doesn't exist
     if [ $(git branch --show-current) != "${INPUT_DEPLOY_BRANCH}" ]; then
-        git fetch origin ${INPUT_DEPLOY_BRANCH}
+		git fetch origin "${INPUT_DEPLOY_BRANCH}"
 		
-		git checkout ${INPUT_DEPLOY_BRANCH} || \
-			(echo "Creating new branch '${INPUT_DEPLOY_BRANCH}'" && git checkout -b ${INPUT_DEPLOY_BRANCH}) || \
+		git checkout "${INPUT_DEPLOY_BRANCH}" || \
+			(echo "Creating new branch '${INPUT_DEPLOY_BRANCH}'" && \
+            git checkout -b "${INPUT_DEPLOY_BRANCH}") || \
 				fail_and_exit "error" "branch check" "Repo failed to switch to branch '${INPUT_DEPLOY_BRANCH}'."
     fi
     # echo "Build branch '${INPUT_DEPLOY_BRANCH}' checked out" 1>&1
+
+    # ensure correct sumbmodule branch is checked out, create if it doesn't exist
+    if [ "${DEPLOY_TO_SUBMODULE}" = "true" ]; then
+        if [ $(git -C "${INPUT_HUGO_BUILD_DIRECTORY}" branch --show-current) != "${INPUT_SUBMODULE_BRANCH}" ]; then
+            git -C "${INPUT_HUGO_BUILD_DIRECTORY}" fetch origin "${INPUT_SUBMODULE_BRANCH}"
+            
+            git -C "${INPUT_HUGO_BUILD_DIRECTORY}" checkout "${INPUT_SUBMODULE_BRANCH}" || \
+                (echo "Creating new submodule branch '${INPUT_SUBMODULE_BRANCH}'" && \
+                git -C "${INPUT_HUGO_BUILD_DIRECTORY}" checkout -b "${INPUT_SUBMODULE_BRANCH}") || \
+                    fail_and_exit "error" "submodule branch check" "Submodule failed to switch to branch '${INPUT_SUBMODULE_BRANCH}'."
+        fi
+    fi
 
     #________#_#_#_#_#_#_#_
 
@@ -166,17 +181,17 @@ deploy_to_remote() {
     if [ "${DEPLOY_TO_SUBMODULE}" = "true" ]; then
         git -C ${INPUT_HUGO_BUILD_DIRECTORY} add . || fail_and_exit "error" "git add files in submodule" "Files could not be staged in the deploy submodule for some reason."
 	    git -C ${INPUT_HUGO_BUILD_DIRECTORY} commit -m "${COMMIT_MESSAGE}" || fail_and_exit "safe" "git commit in submodule" "No changes from build. Nothing to commit. Exiting without deploy."
-        git -C ${INPUT_HUGO_BUILD_DIRECTORY} push --recurse-submodules=on-demand || fail_and_exit "error" "git push in submodule" "Unable to push build from deploy submodule. See git output for details."
+        git -C ${INPUT_HUGO_BUILD_DIRECTORY} push -u origin "${INPUT_SUBMODULE_BRANCH}" --recurse-submodules=on-demand || fail_and_exit "error" "git push in submodule" "Unable to push build from deploy submodule. See git output for details."
         
         # push to deploy submodule before the main repo to ensure the referenced commit is updated
-        # HACK: For whatever reason, a normal 'push --recurse-submodules=on-demand' from the main repo fails when main repo 
+        # HACK: For whatever reason, a normal '--recurse-submodules=on-demand' from the main repo fails when main repo 
         # and submodule branch names don't match. It's a frustrating result of using Github's checkout action. But this is an okay workaround.
     fi
     
     # add all changes to base repo (the only repo if not using submodules) and push all
     git add . || fail_and_exit "error" "git add files in root dir" "Files could not be staged in the root directory for some reason."
     git commit -m "${COMMIT_MESSAGE}" || fail_and_exit "safe" "git commit in root die" "No changes from build. Nothing to commit. Exiting without deploy."  
-	git push --recurse-submodules=on-demand || fail_and_exit "error" "git push in root dir" "Unable to push build from root directory. See output for details."
+	git push -u origin "${INPUT_DEPLOY_BRANCH}" --recurse-submodules=on-demand || fail_and_exit "error" "git push in root dir" "Unable to push build from root directory. See output for details."
 
     ###_______________________
 
@@ -252,6 +267,8 @@ build_site
 # set commit message using deploy data
 set_commit_message
 
+# 'hugo build' plus any optional arguments
+build_site
 
 # add, commit, and push, baby!
 deploy_to_remote
