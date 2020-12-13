@@ -1,21 +1,18 @@
-#!/bin/sh
-
-### TODO: switch to deploy branch, merge from source branch (force/rebase?), then build?
-
-# set local env vars here
+# IGNORE - set env vars here for local testing only
 if [ !"${GITHUB_ACTIONS}" ]; then
     INPUT_DEPLOY_BRANCH="test2"
     INPUT_SOURCE_BRANCH="master"
-	# SOURCE_HASH="jfkdlf"
+    INPUT_SUBMODULE_BRANCH="master"
+    INPUT_HUGO_BUILD_DIRECTORY="public"
 	# INPUT_COMMIT_MESSAGE="insert commit message here"
+	# SOURCE_HASH="jfkdlf"
 fi
 
 # region script vars
 # vars used by script, do no edit
 FRESH="${INPUT_FRESH_BUILD}"
 IGNORE_FILES=". .. .git CNAME ${INPUT_DO_NOT_DELETE_FILES}" # space-delimited array of files to protect when 'fresh' option is used
-DEPLOY_TO_SUBMODULE="false" # false by default, set to true if input_deploy_directory matches a repo submodule
-
+DEPLOY_TO_SUBMODULE="false" # false by default, set to true if input_hugo_build_directory matches a repo submodule
 # console text styles
 S_LY="\033[93m"
 S_LR="\033[91m"
@@ -31,9 +28,7 @@ configure_git_user() {
 }
 
 check_for_deploy_submodule() {
-    # checks if the .gitmodules file contains a submodule at the deploy directory path
-    TARGET_REPO_SUBMODULE=$(git config --file .gitmodules --get-regexp path | grep "${INPUT_DEPLOY_DIRECTORY}$" )
-    if [ -n "${TARGET_REPO_SUBMODULE}" ]; then
+    if [ "${INPUT_SUBMODULE_BRANCH}" != "" ]; then
         DEPLOY_TO_SUBMODULE="true"
     fi
 }
@@ -169,24 +164,43 @@ build_site() {
 deploy_to_remote() {
     # add and commit deploy module
     if [ "${DEPLOY_TO_SUBMODULE}" = "true" ]; then
-        git -C ${INPUT_DEPLOY_DIRECTORY} add . || fail_and_exit "error" "git add files to submodule deploy repo" "Files could not be staged for some reason."
-	    git -C ${INPUT_DEPLOY_DIRECTORY} commit -m "${COMMIT_MESSAGE}" || fail_and_exit "safe" "git commit to submodule deploy repo" "No changes from build. Nothing to commit. Exiting without deploy."
-        git -C ${INPUT_DEPLOY_DIRECTORY} push --recurse-submodules=on-demand || fail_and_exit "error" "git push and deploy" "Unable to push build. See output for details."
+        git -C ${INPUT_HUGO_BUILD_DIRECTORY} add . || fail_and_exit "error" "git add files in submodule" "Files could not be staged in the deploy submodule for some reason."
+	    git -C ${INPUT_HUGO_BUILD_DIRECTORY} commit -m "${COMMIT_MESSAGE}" || fail_and_exit "safe" "git commit in submodule" "No changes from build. Nothing to commit. Exiting without deploy."
+        git -C ${INPUT_HUGO_BUILD_DIRECTORY} push --recurse-submodules=on-demand || fail_and_exit "error" "git push in submodule" "Unable to push build from deploy submodule. See git output for details."
+        
         # push to deploy submodule before the main repo to ensure the referenced commit is updated
         # HACK: For whatever reason, a normal 'push --recurse-submodules=on-demand' from the main repo fails when main repo 
         # and submodule branch names don't match. It's a frustrating result of using Github's checkout action. But this is an okay workaround.
-
-        # add and commit only the deploy directory to the main module - updates the submodule hash
-        git add ${INPUT_DEPLOY_DIRECTORY} || fail_and_exit "error" "git add files to main build repo" "Files could not be staged for some reason."
-	    git commit -m "${COMMIT_MESSAGE}" || fail_and_exit "safe" "git commit to main build repo" "No changes from build. Nothing to commit. Exiting without deploy."
-    else
-        # add all changes if no deploy submodule
-        git add . || fail_and_exit "error" "git add files to main build repo" "Files could not be staged for some reason."
-	    git commit -m "${COMMIT_MESSAGE}" || fail_and_exit "safe" "git commit to main build repo" "No changes from build. Nothing to commit. Exiting without deploy."  
     fi
+    
+    # add all changes to base repo (the only repo if not using submodules) and push all
+    git add . || fail_and_exit "error" "git add files in root dir" "Files could not be staged in the root directory for some reason."
+    git commit -m "${COMMIT_MESSAGE}" || fail_and_exit "safe" "git commit in root die" "No changes from build. Nothing to commit. Exiting without deploy."  
+	git push --recurse-submodules=on-demand || fail_and_exit "error" "git push in root dir" "Unable to push build from root directory. See output for details."
 
-    # push main repo and any changed submodules (apart from deploy repo)
-	git push --recurse-submodules=on-demand || fail_and_exit "error" "git push and deploy" "Unable to push build. See output for details."
+    ###_______________________
+
+
+    # # add and commit deploy module
+    # if [ "${DEPLOY_TO_SUBMODULE}" = "true" ]; then
+    #     git -C ${INPUT_DEPLOY_DIRECTORY} add . || fail_and_exit "error" "git add files to submodule deploy repo" "Files could not be staged for some reason."
+	#     git -C ${INPUT_DEPLOY_DIRECTORY} commit -m "${COMMIT_MESSAGE}" || fail_and_exit "safe" "git commit to submodule deploy repo" "No changes from build. Nothing to commit. Exiting without deploy."
+    #     git -C ${INPUT_DEPLOY_DIRECTORY} push --recurse-submodules=on-demand || fail_and_exit "error" "git push and deploy" "Unable to push build. See output for details."
+    #     # push to deploy submodule before the main repo to ensure the referenced commit is updated
+    #     # HACK: For whatever reason, a normal 'push --recurse-submodules=on-demand' from the main repo fails when main repo 
+    #     # and submodule branch names don't match. It's a frustrating result of using Github's checkout action. But this is an okay workaround.
+
+    #     # add and commit only the deploy directory to the main module - updates the submodule hash
+    #     git add ${INPUT_DEPLOY_DIRECTORY} || fail_and_exit "error" "git add files to main build repo" "Files could not be staged for some reason."
+	#     git commit -m "${COMMIT_MESSAGE}" || fail_and_exit "safe" "git commit to main build repo" "No changes from build. Nothing to commit. Exiting without deploy."
+    # else
+    #     # add all changes if no deploy submodule
+    #     git add . || fail_and_exit "error" "git add files to main build repo" "Files could not be staged for some reason."
+	#     git commit -m "${COMMIT_MESSAGE}" || fail_and_exit "safe" "git commit to main build repo" "No changes from build. Nothing to commit. Exiting without deploy."  
+    # fi
+
+    # # push main repo and any changed submodules (apart from deploy repo)
+	# git push --recurse-submodules=on-demand || fail_and_exit "error" "git push and deploy" "Unable to push build. See output for details."
 }
 
 # exit with a console message on any failed action
