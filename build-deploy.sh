@@ -67,6 +67,7 @@ check_source_commits() {
 		fail_and_exit "safe" "check for new source commits" "Previously built from the latest commit on source branch. Exiting without deploy."
 	fi
 }
+
 set_commit_message() {
 
     COMMIT_MESSAGE="auto-build #${BUILD_NUMBER} - ${INPUT_SOURCE_BRANCH} @ ${SOURCE_HASH}"
@@ -127,6 +128,9 @@ check_branches() {
     # fi
 }
 
+merge_from_source() {
+	git merge "${INPUT_SOURCE_BRANCH}" --no-commit || fail_and_exit "error" "merge" "Source data could not be merged to the deploy branch. Check status and try again."
+}
 # on 'fresh', delete public data before rebuild (ignores files by name from settings 'array')
 clear_pub_data() {
     # display ignored files
@@ -194,9 +198,7 @@ fail_and_exit() {
     esac
 
     EXIT_LOG=$(printf "%s%s" "${EXIT_LOG} Deploy process exited during '${2}' step. ${3}" "\n")
-
 	echo "${EXIT_LOG}" 1>&1
-	close_build_data "revert"
 
     if [ "${1}" = "safe" ]; then
         exit 0
