@@ -1,5 +1,7 @@
+#!/bin/sh
+
 # IGNORE - set env vars here for local testing only
-if [ !"${GITHUB_ACTIONS}" ]; then
+if [ ! "${GITHUB_ACTIONS}" ]; then
     INPUT_DEPLOY_BRANCH="test3"
 	INPUT_SOURCE_BRANCH="master"
     INPUT_SUBMODULE_BRANCH="test3"
@@ -58,7 +60,8 @@ check_branches() {
 
     # ensure correct sumbmodule branch is checked out, create if it doesn't exist
     if [ "${DEPLOY_TO_SUBMODULE}" = "true" ]; then
-        if [ $(git -C "${INPUT_HUGO_BUILD_DIRECTORY}" branch --show-current) != "${INPUT_SUBMODULE_BRANCH}" ]; then
+        CUR_BRANCH=$(git -C "${INPUT_HUGO_BUILD_DIRECTORY}" branch --show-current)
+        if [ "${CUR_BRANCH}" != "${INPUT_SUBMODULE_BRANCH}" ]; then
             git -C "${INPUT_HUGO_BUILD_DIRECTORY}" fetch origin "${INPUT_SUBMODULE_BRANCH}"
             
             git -C "${INPUT_HUGO_BUILD_DIRECTORY}" checkout "${INPUT_SUBMODULE_BRANCH}" || \
