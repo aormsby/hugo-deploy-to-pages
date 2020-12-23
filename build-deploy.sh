@@ -11,7 +11,7 @@ fi
 # region script vars
 # vars used by script, do no edit
 FRESH="${INPUT_FRESH_BUILD}"
-IGNORE_FILES=". .. .git CNAME ${INPUT_DO_NOT_DELETE_FILES}" # space-delimited array of files to protect when 'fresh' option is used
+IGNORE_FILES=". .. .git CNAME ${INPUT_DO_NOT_DELETE_FILES}" # space-delimited array of files to protect when input_fresh_build option is set to true
 DEPLOY_TO_SUBMODULE="false" # false by default, set to true if input_submodule_branch is set
 
 # console text styles
@@ -29,56 +29,11 @@ configure_git_user() {
     git config --global user.email "${INPUT_GIT_USER}"
 }
 
+# enables future processes based on user's input_submodule_branch value
 check_for_deploy_submodule() {
     if [ "${INPUT_SUBMODULE_BRANCH}" != "" ]; then
         DEPLOY_TO_SUBMODULE="true"
     fi
-}
-
-# retrieve last commit hash from hugo-deploy.dat
-read_build_data() {
-	if [ -f "hugo-deploy.dat" ]; then
-		BUILD_NUMBER=$(($(head -1 hugo-deploy.dat) + 1))
-		LAST_HASH=$(tail -1 hugo-deploy.dat)
-    else
-        BUILD_NUMBER=1
-        LAST_HASH=0
-	fi
-
-	# if [ ! -f "build.dat" ]; then
-	# 	BUILD_NUMBER=1
-	# else
-	# 	BUILD_NUMBER=$(($(cat build.dat) + 1))
-	# fi
-}
-
-# if no new commits, exit deploy process safely
-check_source_commits() {
-	SOURCE_HASH=$(git show-ref --hash --abbrev "heads/${INPUT_SOURCE_BRANCH}")
-    
-	# no previous deploys, continue with process
-	if [ "${LAST_HASH}" = 0 ]; then
-		return
-	fi
-	
-	if [ "${SOURCE_HASH}" = "${LAST_HASH}" ]; then
-		fail_and_exit "safe" "check for new source commits" "Previously built from the latest commit on source branch. Exiting without deploy."
-	fi
-}
-
-set_commit_message() {
-    COMMIT_MESSAGE="auto-build #${BUILD_NUMBER} - ${INPUT_SOURCE_BRANCH} @ ${SOURCE_HASH}"
-
-    if [ -n "${INPUT_COMMIT_MESSAGE}" ]; then
-        COMMIT_MESSAGE="${COMMIT_MESSAGE}\n\n${INPUT_COMMIT_MESSAGE}"
-    fi
-	echo "${COMMIT_MESSAGE}"
-}
-
-# update build number before operation begins
-write_build_data() {
-	# store build number in hugo-deploy.dat
-	echo "${BUILD_NUMBER}\n${SOURCE_HASH}" >hugo-deploy.dat || fail_and_exit "warn" "build number update" "Build number could not be updated for some reason. Process may have completed anyway."
 }
 
 # make sure the active local branches match the settings (and exit if they can't be switched to)
@@ -113,12 +68,38 @@ check_branches() {
     fi
 }
 
+# retrieve last build data from hugo-deploy.dat
+read_build_data() {
+	if [ -f "hugo-deploy.dat" ]; then
+		BUILD_NUMBER=$(($(head -1 hugo-deploy.dat) + 1))
+		LAST_HASH=$(tail -1 hugo-deploy.dat)
+    else
+        BUILD_NUMBER=1
+        LAST_HASH=0
+	fi
+}
+
+# if no new commits, exit deploy process safely
+check_source_commits() {
+	SOURCE_HASH=$(git show-ref --hash --abbrev "heads/${INPUT_SOURCE_BRANCH}")
+    
+	# no previous deploys, continue with process
+	if [ "${LAST_HASH}" = 0 ]; then
+		return
+	fi
+	
+	if [ "${SOURCE_HASH}" = "${LAST_HASH}" ]; then
+		fail_and_exit "safe" "check for new source commits" "Previously built from the latest commit on source branch. Exiting without deploy."
+	fi
+}
+
 # TODO: consider a recursive Xtheirs to ensure source overrides any conflicts that appear in deploy branch
+# pull source data into deploy branch to prep for new build
 merge_from_source() {
 	git merge "${INPUT_SOURCE_BRANCH}" --no-commit || fail_and_exit "error" "merge" "Source data could not be merged to the deploy branch. Check status and try again."
 }
 
-# on 'fresh', delete public data before rebuild (ignores files by name from settings 'array')
+# in input_fresh_build is true, delete previous build outpu before rebuild (ignores files in input_do_not_delete_files)
 clear_pub_data() {
     # display ignored files
     echo "'Fresh' option enabled. Deleting previous build files." 1>&1
@@ -146,7 +127,17 @@ clear_pub_data() {
     echo "'Fresh' file deletion complete" 1>&1
 }
 
-# 'hugo build' plus any optional arguments
+# set commit message based on commit hash and hugo-deploy.dat
+set_commit_message() {
+    COMMIT_MESSAGE="auto-build #${BUILD_NUMBER} - ${INPUT_SOURCE_BRANCH} @ ${SOURCE_HASH}"
+
+    if [ -n "${INPUT_COMMIT_MESSAGE}" ]; then
+        COMMIT_MESSAGE="${COMMIT_MESSAGE}\n\n${INPUT_COMMIT_MESSAGE}"
+    fi
+	echo "${COMMIT_MESSAGE}"
+}
+
+# run 'hugo build' plus any input_hugo_build_options
 build_site() {
     echo "running command: hugo ${INPUT_HUGO_BUILD_OPTIONS}"
 	hugo "${INPUT_HUGO_BUILD_OPTIONS}" || fail_and_exit "error" "hugo" "Hugo build failed. Check output for details."
@@ -162,37 +153,18 @@ deploy_to_remote() {
         
         # push to deploy submodule before the main repo to ensure the referenced commit is updated
         # HACK: For whatever reason, a normal '--recurse-submodules=on-demand' from the main repo fails when main repo 
-        # and submodule branch names don't match. It's a frustrating result of using Github's checkout action. But this is an okay workaround.
+        # and submodule branch names don't match. It's a frustrating result of using Github's checkout action, but this is a good workaround.
     fi
     
     # add all changes to base repo (the only repo if not using submodules) and push all
     git add . || fail_and_exit "error" "git add files in root dir" "Files could not be staged in the root directory for some reason."
     git commit -m "${COMMIT_MESSAGE}" || fail_and_exit "safe" "git commit in root die" "No changes from build. Nothing to commit. Exiting without deploy."  
 	git push -u origin "${INPUT_DEPLOY_BRANCH}" --recurse-submodules=on-demand || fail_and_exit "error" "git push in root dir" "Unable to push build from root directory. See output for details."
+}
 
-    ###_______________________
-
-
-    # # add and commit deploy module
-    # if [ "${DEPLOY_TO_SUBMODULE}" = "true" ]; then
-    #     git -C ${INPUT_DEPLOY_DIRECTORY} add . || fail_and_exit "error" "git add files to submodule deploy repo" "Files could not be staged for some reason."
-	#     git -C ${INPUT_DEPLOY_DIRECTORY} commit -m "${COMMIT_MESSAGE}" || fail_and_exit "safe" "git commit to submodule deploy repo" "No changes from build. Nothing to commit. Exiting without deploy."
-    #     git -C ${INPUT_DEPLOY_DIRECTORY} push --recurse-submodules=on-demand || fail_and_exit "error" "git push and deploy" "Unable to push build. See output for details."
-    #     # push to deploy submodule before the main repo to ensure the referenced commit is updated
-    #     # HACK: For whatever reason, a normal 'push --recurse-submodules=on-demand' from the main repo fails when main repo 
-    #     # and submodule branch names don't match. It's a frustrating result of using Github's checkout action. But this is an okay workaround.
-
-    #     # add and commit only the deploy directory to the main module - updates the submodule hash
-    #     git add ${INPUT_DEPLOY_DIRECTORY} || fail_and_exit "error" "git add files to main build repo" "Files could not be staged for some reason."
-	#     git commit -m "${COMMIT_MESSAGE}" || fail_and_exit "safe" "git commit to main build repo" "No changes from build. Nothing to commit. Exiting without deploy."
-    # else
-    #     # add all changes if no deploy submodule
-    #     git add . || fail_and_exit "error" "git add files to main build repo" "Files could not be staged for some reason."
-	#     git commit -m "${COMMIT_MESSAGE}" || fail_and_exit "safe" "git commit to main build repo" "No changes from build. Nothing to commit. Exiting without deploy."  
-    # fi
-
-    # # push main repo and any changed submodules (apart from deploy repo)
-	# git push --recurse-submodules=on-demand || fail_and_exit "error" "git push and deploy" "Unable to push build. See output for details."
+# write new build data to hugo-deploy.dat on successful deploy
+write_build_data() {
+	echo "${BUILD_NUMBER}\n${SOURCE_HASH}" >hugo-deploy.dat || fail_and_exit "warn" "build number update" "Build number could not be updated for some reason. Process may have completed anyway."
 }
 
 # exit with a console message on any failed action
@@ -218,38 +190,38 @@ fail_and_exit() {
 ####################################################################
 # Main script starts here
 
-### TODO: rearrange and re-comment
-
 # set commit credentials
 configure_git_user
 
 # check if we're deploying to a submodule
 check_for_deploy_submodule
 
-# make sure the active local branches match the settings (and exit if they don't)
+# make sure the active local branches match the settings (and exit if they can't be switched to)
 check_branches
 
-# retrieve build number from hugo-deploy.dat and update value before operation begins
-# and set commit message data
+# retrieve last build data from hugo-deploy.dat
 read_build_data
+
+# if no new commits, exit deploy process safely
 check_source_commits
 
+# pull source data into deploy branch to prep for new build
 merge_from_source
 
-# on 'fresh', delete public data before rebuild (ignores files by name from settings 'array')
+# in input_fresh_build is true, delete previous build outpu before rebuild (ignores files in input_do_not_delete_files)
 if [ "${FRESH}" = "true" ]; then
 	clear_pub_data
 fi
 
-# set commit message using deploy data
+# set commit message based on commit hash and hugo-deploy.dat
 set_commit_message
 
-# 'hugo build' plus any optional arguments
+# run 'hugo build' plus any input_hugo_build_options
 build_site
 
 # add, commit, and push, baby!
 deploy_to_remote
 
-# write new build data on successful deploy
+# write new build data to hugo-deploy.dat on successful deploy
 write_build_data
 # endregion
