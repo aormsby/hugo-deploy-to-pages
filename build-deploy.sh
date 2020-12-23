@@ -151,7 +151,7 @@ clear_pub_data() {
     unset i
 
 	# get string of filenames at submodule path
-	FILE_LIST=$(ls -a "${INPUT_DEPLOY_DIRECTORY}")
+	FILE_LIST=$(ls -a "${INPUT_HUGO_BUILD_DIRECTORY}")
 
 	# remove the ignored filenames from the string list
 	for i in $(echo "${IGNORE_FILES}" | sed "s/ /\\ /g"); do
@@ -162,7 +162,7 @@ clear_pub_data() {
 	# delete remaining files in the filename list
 	for i in $(echo "${FILE_LIST}" | sed "s/ /\\ /g"); do
         echo "deleted => ${i}"
-		rm -r "${INPUT_DEPLOY_DIRECTORY:?}/${i}"
+		rm -r "${INPUT_HUGO_BUILD_DIRECTORY:?}/${i}"
 	done
 	unset i
 
