@@ -18,6 +18,11 @@ inputs:
   deploy_branch:
     description: 'Repo branch where site is built and deployed, separated from source branch for easy access to build history'
     required: true
+  
+  source_merge_args:
+    description:
+    required: false
+    default: '-s recursive -Xtheirs'
 
   submodule_branch:
     description: 'If your Hugo build directory contains a submodule (the build output is tracked in another repo), set the deployment branch in that submodule - ignore option if not using a submodule'

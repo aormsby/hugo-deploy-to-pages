@@ -11,6 +11,7 @@ fi
 # region script vars
 # vars used by script, do no edit
 FRESH="${INPUT_FRESH_BUILD}"
+# TODO: set CNAME as DnD files for input input, leave dotfiles here
 IGNORE_FILES=". .. .git CNAME ${INPUT_DO_NOT_DELETE_FILES}" # space-delimited array of files to protect when input_fresh_build option is set to true
 DEPLOY_TO_SUBMODULE="false" # false by default, set to true if input_submodule_branch is set
 
@@ -96,7 +97,7 @@ check_source_commits() {
 # TODO: consider a recursive Xtheirs to ensure source overrides any conflicts that appear in deploy branch
 # pull source data into deploy branch to prep for new build
 merge_from_source() {
-	git merge "${INPUT_SOURCE_BRANCH}" --no-commit || fail_and_exit "error" "merge" "Source data could not be merged to the deploy branch. Check status and try again."
+	git merge ${INPUT_SOURCE_MERGE_ARGS} "${INPUT_SOURCE_BRANCH}" --no-commit || fail_and_exit "error" "merge" "Source data could not be merged to the deploy branch. Check status and try again."
 }
 
 # in input_fresh_build is true, delete previous build outpu before rebuild (ignores files in input_do_not_delete_files)
