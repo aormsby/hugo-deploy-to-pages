@@ -1,7 +1,7 @@
 # IGNORE - set env vars here for local testing only
 if [ !"${GITHUB_ACTIONS}" ]; then
     INPUT_DEPLOY_BRANCH="test3"
-    INPUT_SOURCE_BRANCH="master"
+	INPUT_SOURCE_BRANCH="master"
     INPUT_SUBMODULE_BRANCH="test3"
     INPUT_HUGO_BUILD_DIRECTORY="public"
 	# INPUT_COMMIT_MESSAGE="insert commit message here"
@@ -12,7 +12,8 @@ fi
 # vars used by script, do no edit
 FRESH="${INPUT_FRESH_BUILD}"
 IGNORE_FILES=". .. .git CNAME ${INPUT_DO_NOT_DELETE_FILES}" # space-delimited array of files to protect when 'fresh' option is used
-DEPLOY_TO_SUBMODULE="false" # false by default, set to true if input_hugo_build_directory matches a repo submodule
+DEPLOY_TO_SUBMODULE="false" # false by default, set to true if input_submodule_branch is set
+
 # console text styles
 S_LY="\033[93m"
 S_LR="\033[91m"
@@ -21,6 +22,7 @@ S_B="\033[1m"
 S_LG="\033[32m"
 # endregion
 
+# TODO: update to match fork sync
 # region script functions
 configure_git_user() {
     git config --global user.name "${INPUT_GIT_EMAIL}"
@@ -39,7 +41,7 @@ read_build_data() {
 		BUILD_NUMBER=$(($(head -1 hugo-deploy.dat) + 1))
 		LAST_HASH=$(tail -1 hugo-deploy.dat)
     else
-		BUILD_NUMBER=1
+        BUILD_NUMBER=1
         LAST_HASH=0
 	fi
 
@@ -54,19 +56,17 @@ read_build_data() {
 check_source_commits() {
 	SOURCE_HASH=$(git show-ref --hash --abbrev "heads/${INPUT_SOURCE_BRANCH}")
     
-    # no previous deploys, continue with process
+	# no previous deploys, continue with process
 	if [ "${LAST_HASH}" = 0 ]; then
 		return
-    fi
-    
-	SOURCE_HASH=$(git show-ref --hash --abbrev "heads/${INPUT_SOURCE_BRANCH}")
+	fi
+	
 	if [ "${SOURCE_HASH}" = "${LAST_HASH}" ]; then
 		fail_and_exit "safe" "check for new source commits" "Previously built from the latest commit on source branch. Exiting without deploy."
 	fi
 }
 
 set_commit_message() {
-
     COMMIT_MESSAGE="auto-build #${BUILD_NUMBER} - ${INPUT_SOURCE_BRANCH} @ ${SOURCE_HASH}"
 
     if [ -n "${INPUT_COMMIT_MESSAGE}" ]; then
@@ -111,36 +111,13 @@ check_branches() {
                     fail_and_exit "error" "submodule branch check" "Submodule failed to switch to branch '${INPUT_SUBMODULE_BRANCH}'."
         fi
     fi
-
-    #________#_#_#_#_#_#_#_
-
-    # ensure correct build branch is checked out
-    # if [ $(git branch --show-current) != "${INPUT_BUILD_BRANCH}" ]; then
-    #     git fetch origin ${INPUT_BUILD_BRANCH}
-    #     git checkout ${INPUT_BUILD_BRANCH} || fail_and_exit "error" "branch check" "Repo failed to switch to branch '${INPUT_BUILD_BRANCH}'. Does it exist?"
-    #     # echo "Build branch '${INPUT_BUILD_BRANCH}' checked out" 1>&1
-    # fi
-
-    # ### TODO: change 'deploy branch' to... something else like 'submodule branch'
-
-    # # if using submodule, ensure target deploy branch is checked out
-    # if [ "${DEPLOY_TO_SUBMODULE}" = "true" ]; then
-    #     # set fetch spec to get all remote heads for the deploy submodule, not limited to what the checkout sets
-    #     git -C ${INPUT_DEPLOY_DIRECTORY} config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
-
-    #     #sync and update the deploy submodule
-    #     git submodule sync --recursive ${INPUT_DEPLOY_DIRECTORY}
-    #     git submodule update --init --recursive --remote ${INPUT_DEPLOY_DIRECTORY}
-
-    #     # checkout specified submodule deploy branch
-    #     git -C ${INPUT_DEPLOY_DIRECTORY} checkout ${INPUT_DEPLOY_BRANCH} || fail_and_exit "error" "branch check" "Submodule repo failed to switch to branch '${INPUT_DEPLOY_BRANCH}'. Does it exist?"
-    #     # echo "Deploy branch '${INPUT_DEPLOY_BRANCH}' checked out" 1>&1
-    # fi
 }
 
+# TODO: consider a recursive Xtheirs to ensure source overrides any conflicts that appear in deploy branch
 merge_from_source() {
 	git merge "${INPUT_SOURCE_BRANCH}" --no-commit || fail_and_exit "error" "merge" "Source data could not be merged to the deploy branch. Check status and try again."
 }
+
 # on 'fresh', delete public data before rebuild (ignores files by name from settings 'array')
 clear_pub_data() {
     # display ignored files
@@ -241,6 +218,8 @@ fail_and_exit() {
 ####################################################################
 # Main script starts here
 
+### TODO: rearrange and re-comment
+
 # set commit credentials
 configure_git_user
 
@@ -248,10 +227,10 @@ configure_git_user
 check_for_deploy_submodule
 
 # make sure the active local branches match the settings (and exit if they don't)
-### TODO: change input to 'source branch' and 'deploy branch', change/create branches for building
 check_branches
 
-# retrieve build number from build.dat and update value before operation begins
+# retrieve build number from hugo-deploy.dat and update value before operation begins
+# and set commit message data
 read_build_data
 check_source_commits
 
@@ -262,8 +241,6 @@ if [ "${FRESH}" = "true" ]; then
 	clear_pub_data
 fi
 
-# 'hugo build' plus any optional arguments
-build_site
 # set commit message using deploy data
 set_commit_message
 
@@ -276,5 +253,3 @@ deploy_to_remote
 # write new build data on successful deploy
 write_build_data
 # endregion
-
-# TODO: @v2 => pull site repo, create a new 'build branch', and build from there? to avoid pushing to the main branch?

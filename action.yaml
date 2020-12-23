@@ -7,18 +7,21 @@ branding:
   color: orange
 
 inputs:
-  deploy_directory:
+  hugo_build_directory:
     description: 'Name of Hugo build output folder (path from root directory), Hugo default is "public"'
     required: true
 
-  build_branch:
-    description: 'Repo branch used for site build'
+  source_branch:
+    description: 'Repo branch, data source for site build'
     required: true
 
   deploy_branch:
-    description: 'Branch to deploy to if pushing build to submodule'
+    description: 'Repo branch where site is built and deployed, separated from source branch for easy access to build history'
+    required: true
+
+  submodule_branch:
+    description: 'If your Hugo build directory contains a submodule (the build output is tracked in another repo), set the deployment branch in that submodule - ignore option if not using a submodule'
     required: false
-    default: 'main'
 
     # please use with caution
   fresh_build:
