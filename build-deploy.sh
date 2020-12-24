@@ -144,7 +144,7 @@ set_commit_message() {
 # run 'hugo build' plus any input_hugo_build_options
 build_site() {
     echo "running command: hugo ${INPUT_HUGO_BUILD_OPTIONS}"
-	hugo "${INPUT_HUGO_BUILD_OPTIONS}" || fail_and_exit "error" "hugo" "Hugo build failed. Check output for details."
+	hugo ${INPUT_HUGO_BUILD_OPTIONS} || fail_and_exit "error" "hugo" "Hugo build failed. Check output for details."
 }
 
 # add, commit, and push, baby!
