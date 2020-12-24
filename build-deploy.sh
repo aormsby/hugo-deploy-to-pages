@@ -223,9 +223,10 @@ set_commit_message
 # run 'hugo build' plus any input_hugo_build_options
 build_site
 
+# write new build data to hugo-deploy.dat before deploy (to include in push data)
+write_build_data
+
 # add, commit, and push, baby!
 deploy_to_remote
 
-# write new build data to hugo-deploy.dat on successful deploy
-write_build_data
 # endregion
