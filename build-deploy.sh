@@ -136,7 +136,7 @@ set_commit_message() {
     COMMIT_MESSAGE="auto-build #${BUILD_NUMBER} - ${INPUT_SOURCE_BRANCH} @ ${SOURCE_HASH}"
 
     if [ -n "${INPUT_COMMIT_MESSAGE}" ]; then
-        COMMIT_MESSAGE="${COMMIT_MESSAGE}\n\n${INPUT_COMMIT_MESSAGE}"
+        COMMIT_MESSAGE="${COMMIT_MESSAGE}" "\n\n" "${INPUT_COMMIT_MESSAGE}"
     fi
 	echo "${COMMIT_MESSAGE}"
 }
