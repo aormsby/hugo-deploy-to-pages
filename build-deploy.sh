@@ -5,7 +5,7 @@ if [ ! "${GITHUB_ACTIONS}" ]; then
     INPUT_DEPLOY_BRANCH="test3"
 	INPUT_SOURCE_BRANCH="master"
     INPUT_SUBMODULE_BRANCH="test3"
-    INPUT_HUGO_BUILD_DIRECTORY="public"
+    INPUT_HUGO_PUBLISH_DIRECTORY="public"
 	# INPUT_COMMIT_MESSAGE="insert commit message here"
 	# SOURCE_HASH="jfkdlf"
 fi
@@ -59,13 +59,13 @@ check_branches() {
 
     # ensure correct sumbmodule branch is checked out, create if it doesn't exist
     if [ "${DEPLOY_TO_SUBMODULE}" = "true" ]; then
-        CUR_BRANCH=$(git -C "${INPUT_HUGO_BUILD_DIRECTORY}" branch --show-current)
+        CUR_BRANCH=$(git -C "${INPUT_HUGO_PUBLISH_DIRECTORY}" branch --show-current)
         if [ "${CUR_BRANCH}" != "${INPUT_SUBMODULE_BRANCH}" ]; then
-            git -C "${INPUT_HUGO_BUILD_DIRECTORY}" fetch origin "${INPUT_SUBMODULE_BRANCH}"
+            git -C "${INPUT_HUGO_PUBLISH_DIRECTORY}" fetch origin "${INPUT_SUBMODULE_BRANCH}"
             
-            git -C "${INPUT_HUGO_BUILD_DIRECTORY}" checkout "${INPUT_SUBMODULE_BRANCH}" || \
+            git -C "${INPUT_HUGO_PUBLISH_DIRECTORY}" checkout "${INPUT_SUBMODULE_BRANCH}" || \
                 (echo "Creating new submodule branch '${INPUT_SUBMODULE_BRANCH}'" && \
-                git -C "${INPUT_HUGO_BUILD_DIRECTORY}" checkout -b "${INPUT_SUBMODULE_BRANCH}") || \
+                git -C "${INPUT_HUGO_PUBLISH_DIRECTORY}" checkout -b "${INPUT_SUBMODULE_BRANCH}") || \
                     fail_and_exit "error" "submodule branch check" "Submodule failed to switch to branch '${INPUT_SUBMODULE_BRANCH}'."
         fi
     fi
@@ -111,7 +111,7 @@ clear_pub_data() {
     unset i
 
 	# get string of filenames at submodule path
-	FILE_LIST=$(ls -a "${INPUT_HUGO_BUILD_DIRECTORY}")
+	FILE_LIST=$(ls -a "${INPUT_HUGO_PUBLISH_DIRECTORY}")
 
 	# remove the ignored filenames from the string list
 	for i in $(echo "${IGNORE_FILES}" | sed "s/ /\\ /g"); do
@@ -122,7 +122,7 @@ clear_pub_data() {
 	# delete remaining files in the filename list
 	for i in $(echo "${FILE_LIST}" | sed "s/ /\\ /g"); do
         echo "deleted => ${i}"
-		rm -r "${INPUT_HUGO_BUILD_DIRECTORY:?}/${i}"
+		rm -r "${INPUT_HUGO_PUBLISH_DIRECTORY:?}/${i}"
 	done
 	unset i
 
@@ -149,9 +149,9 @@ build_site() {
 deploy_to_remote() {
     # add and commit deploy module
     if [ "${DEPLOY_TO_SUBMODULE}" = "true" ]; then
-        git -C ${INPUT_HUGO_BUILD_DIRECTORY} add . || fail_and_exit "error" "git add files in submodule" "Files could not be staged in the deploy submodule for some reason."
-	    git -C ${INPUT_HUGO_BUILD_DIRECTORY} commit -m "${COMMIT_MESSAGE}" || fail_and_exit "safe" "git commit in submodule" "No changes from build. Nothing to commit. Exiting without deploy."
-        git -C ${INPUT_HUGO_BUILD_DIRECTORY} push -u origin "${INPUT_SUBMODULE_BRANCH}" --recurse-submodules=on-demand || fail_and_exit "error" "git push in submodule" "Unable to push build from deploy submodule. See git output for details."
+        git -C ${INPUT_HUGO_PUBLISH_DIRECTORY} add . || fail_and_exit "error" "git add files in submodule" "Files could not be staged in the deploy submodule for some reason."
+	    git -C ${INPUT_HUGO_PUBLISH_DIRECTORY} commit -m "${COMMIT_MESSAGE}" || fail_and_exit "safe" "git commit in submodule" "No changes from build. Nothing to commit. Exiting without deploy."
+        git -C ${INPUT_HUGO_PUBLISH_DIRECTORY} push -u origin "${INPUT_SUBMODULE_BRANCH}" --recurse-submodules=on-demand || fail_and_exit "error" "git push in submodule" "Unable to push build from deploy submodule. See git output for details."
         
         # push to deploy submodule before the main repo to ensure the referenced commit is updated
         # HACK: For whatever reason, a normal '--recurse-submodules=on-demand' from the main repo fails when main repo 

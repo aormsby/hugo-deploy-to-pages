@@ -7,8 +7,8 @@ branding:
   color: orange
 
 inputs:
-  hugo_build_directory:
-    description: 'Name of Hugo build output folder (path from root directory), Hugo default is "public"'
+  hugo_publish_directory:
+    description: 'Name of Hugo publish directory, Hugo default is "public"'
     required: true
 
   source_branch:
