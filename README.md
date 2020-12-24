@@ -10,62 +10,78 @@ An action for Hugo websites. Build your site from whichever repo branch you choo
 
 As with any Github Action, you must include it in a workflow for your repo to run. Place the workflow at `.github/workflows/my-build-workflow.yaml` in the default repo branch. For more help, see [Github Actions documentation](https://docs.github.com/en/actions).
 
-This action does not include the checkout step. For this, I used the [actions/checkout](https://github.com/actions/checkout) action. A token or SSH is needed for checking out private repos. See my example workflow below for details.
+For git checkout and Hugo install steps, I use [actions/checkout](https://github.com/actions/checkout) and [peaceiris/actions-hugo](https://github.com/peaceiris/actions-hugo). A token or SSH is needed for checking out private repos. See my example workflow below for details.
 
 ### Input Variables
 
-| Name                | Required?            | Default                                 | Example                                |
-| ------------------- | :------------------: | --------------------------------------- | -------------------------------------- |
-| deploy_directory    | :white_check_mark:   |                                         | 'public' - (hugo deploy directory name)|
-| build_branch        | :white_check_mark:   |                                         | 'dev' - (branch name)                  |
-| deploy_branch       |                      | 'main'.                                 | 'live' - (branch name)                 |
-| fresh_build         |                      | false                                   | true / false                           |
-| do_not_delete_files |                      |                                         | 'ignore-me.txt posts static.css'.      |
-| hugo_build_options  |                      |                                         | '-D --minify --ignoreCache'            |
-| commit_message      |                      |                                         | 'I like big builds, and I cannot lie.' |
-| git_user            |                      | 'Github Action - Hugo Build and Deploy' | 'aormsby'                              |
-| git_email           |                      | 'action@github.com'                     | 'ormsbyadam@gmail.com'                 |
+#### Primary Input
+
+| Name                      | Required?            | Default  | Example                                |
+| ------------------------- | :----------------: | -----------| -------------------------------------- |
+| hugo_publish_directory    | :white_check_mark: |            | 'public' - (hugo publishDir value)     |
+| source_branch             | :white_check_mark: |            | 'main' - (branch name)                 |
+| deploy_branch             | :white_check_mark: |            | 'release' - (branch name)              |
+| submodule_branch          |                    |            | 'main'                                 |
+
+#### Advanccd Options
+
+| Name                   | Required?   | Default                                 | Example                                   |
+| ---------------------- | :---------: | --------------------------------------- | ----------------------------------------- |
+| fresh_build            |             | false                                   | true / false                              |
+| do_not_delete_files    |             |                                         | 'ignore-me.txt posts static.css'          |
+| hugo_build_options     |             |                                         | '-D --minify --ignoreCache'               |
+| commit_message         |             |                                         | 'I like big builds, and I cannot lie.'    |
+| git_user               |             | 'Action - Hugo Build and Deploy'        | 'aormsby'                                 |
+| git_email              |             | 'action@github.com'                     | 'ormsbyadam@gmail.com'                    |
+| source_merge_args      |             | '-s recursive -Xtheirs'                 | '-s recursive -Xtheirs'                   |
 
 ### Variable Notes
-- **deploy_directory** -> Where you expect Hugo to output your build. Hugo builds default to 'public', but if you change that location you need to set it here. This input also checks if your deploy directory points to a submodule (no extra work needed).
 
-- **build_branch** -> The branch to build from in the main project.
+- **hugo_publish_directory** -> Where you expect Hugo to output your build. Hugo's publishDir default is 'public', but if you change that location you need to set it here for the action to run properly.
 
-- **deploy_branch** -> The branch to deploy the build output to. This only used if deploying to a specific branch on a submodule. Otherwise, it defaults to 'main'.
+- **source_branch** -> The branch to grab build source code from.
 
-- **fresh_build** -> Clears out the specified deploy directory before running the hugo build (ignores **do_not_delete_files**).
+- **deploy_branch** -> The name of the desired deploy branch. It will contain your entire build history.
 
-- **do_not_delete_files** -> Treat this as a single string where each file or directory you wish to save is separated by a space. Include file extensions. These files are always ignored -- '. .. .git CNAME'
+- **submodule_branch** -> If your publish directory is a link to a git submodule (another repo), you need to include the desired branch of the submodule for the deploy here. **Only set this input if you're deploying to a submodule!**
 
-- **hugo_build_options** -> behaves the same as normal [hugo build options](https://gohugo.io/commands/hugo/)
+- **fresh_build** -> Clears out the publish directory before running the hugo build command (ignores items in **do_not_delete_files**).
 
-- **commit_message** -> appends a custom commit message to the default - 'auto-build and deploy #??'
+- **do_not_delete_files** -> Treat this as a single string where each file or directory you wish to persist is separated by a space. Include file extensions. These files are always ignored -- '. .. .git CNAME'
+
+- **hugo_build_options** -> Behaves the same as normal [hugo build options](https://gohugo.io/commands/hugo/)
+
+- **commit_message** -> Appends a custom commit message to the default - 'auto-build #{build number} - {source branch} @ {commit_hash}'
+
+- **source_merge_args** -> Options for merging data from the source branch into the deploy branch. Default values will automatically favor the source files for a clean build. It's not recommended to change this.
 
 ## Build and Deploy Process - Quick Overview
 
 Right now, the `main.js` script only exists to execute `build-deploy.sh`. It's possible that future updates may add functionality. After checking out the repos and any submodules, the shell script does the following:
 
-1. Set the git user and email config.
-2. Check if you intend to deploy to a submodule or not (it's a pretty smart script).
-3. Make sure the correct build and deploy branches are checked out.
-4. Set the auto-build number and commit message.
+1. Configure git user and email in the runner environment.
+2. Make sure the correct source and deploy branches are checked out.
+3. Set the auto-build number and commit message.
+4. Merge from source branch into deploy branch. (Choose conflict overwrites from the source.)
 5. Clear the deploy folder if **fresh_build** is set to true (skips items in **do_not_delete_files**).
 6. Run `hugo` command with any options you set.
-7. `git push` to deploy to the main project repo and/or the deploy submodule.
- 
-- The action pushes to the project repo to update any locally changed files including generated assets, which may shorten future build times. I am considering building and pushing to a new branch to avoid modifying the build branch in any way, but so far there seems to be no specific need for this.
-- The action will exit quietly if there is nothing new to build (i.e. no changes in git status, no changes to commit).
+7. `git push` to deploy to the desired deploy location.
 
 **And now your changes are live!**
 
+**Note:** This action will exit quietly if there is nothing new to build (i.e. no changes in git status, no changes to commit).
+
 ## Sample Workflows
 
-**deploying to a 'live' site with default settings:**
+### Deploying to a live site with simple settings
+
 ```yaml
 on:
   schedule:
     - cron:  '0 7 * * 1,4'
-    scheduled at 07:00 every Monday and Thursday
+    # scheduled at 07:00 every Monday and Thursday
+  workflow_dispatch:
+    # for manual builds
 
 jobs:
   build_and_deploy_hugo_site:
@@ -73,71 +89,46 @@ jobs:
     name: Build and deploy Hugo site
 
     steps:
-    # required: checkout your project repo first, submodules optional, token or SSH required for private repos
-    - name: Checkout repo with submodules (theme and public)
+     # Step 1: checkout your project repo
+    - name: Checkout repo with submodules (theme and public-sub)
       uses: actions/checkout@v2
       with:
-        token: ${{ secrets.MY_GH_SECRET }}
+        token: ${{ secrets.YOUR_SSECRET_HERE }}
         submodules: 'recursive'
     
-    # required: install Hugo
-    - name: Setup Hugo
+     # Step 2: Install Hugo
+    - name: Install Hugo
       uses: peaceiris/actions-hugo@v2
       with:
-        hugo-version: '0.74.3'
+        hugo-version: '0.74.3'  # your Hugo version here
     
-    - name: Build site with options and push to public deploy repo
-      uses: aormsby/hugo-deploy-to-pages@v1beta
+     # Step 3: Build and deploy with this action
+    - name: Build Hugo site and deploy
+      uses: aormsby/hugo-deploy-to-pages@v2
       with:
-        # deploy_directory: 'public'
-        # build_branch: 'master'
-        # deploy_branch: 'master'
-        fresh_build: true
-        do_not_delete_files: 'testfile.txt myfolder'
-        hugo_build_options: '--minify --ignoreCache'
+        hugo_publish_directory: 'public'
+        source_branch: 'main'
+        deploy_branch: 'live'
         commit_message: 'I like big builds, and I cannot lie.'
         
-    # a handy timestamp printout
+     # Step 4: a handy timestamp printout, just because
     - name: Timestamp
       run: date
 ```
 
-**alternatively, if you want to build and deploy to a different output folder on a dev branch:**
+### Some non-default options
+
 ```yaml
-on:
-  schedule:
-    - cron:  '0 7 * * 1,4'
-    scheduled at 07:00 every Monday and Thursday
-
-jobs:
-  build_and_deploy_hugo_site:
-    runs-on: ubuntu-latest
-    name: Build and deploy Hugo site
-
-    steps:
-    # required: checkout your project repo first, submodules optional, token or SSH required for private repos
-    - name: Checkout repo with submodules (theme and public)
-      uses: actions/checkout@v2
+     # Step 3: Build and deploy with this action
+    - name: Build Hugo site and deploy
+      uses: aormsby/hugo-deploy-to-pages@v2
       with:
-        token: ${{ secrets.MY_GH_SECRET }}
-        submodules: 'recursive'
-    
-    # required: install Hugo
-    - name: Setup Hugo
-      uses: peaceiris/actions-hugo@v2
-      with:
-        hugo-version: '0.74.3'
-    
-    - name: Build site with options and push to public deploy repo
-      uses: aormsby/hugo-deploy-to-pages@v1beta
-      with:
-        deploy_directory: 'documents'
-        build_branch: 'dev'   # note: these do not have to match
-        deploy_branch: 'dev'
-        hugo_build_options: '--buildDrafts'
-        commit_message: 'I like dev builds, and I cannot lie.'
-        
-    # a handy timestamp printout
-    - name: Timestamp
-      run: date
+        hugo_publish_directory: 'public-submod'
+        source_branch: 'main'
+        deploy_branch: 'live'
+        commit_message: 'I like big submodule builds, and I cannot lie.'
+        submodule_branch: 'main'  # setting this pushes to submodule!
+        fresh_build: true
+        do_not_delete_files: 'gnore-me.txt posts static.css'
+        hugo_build_options: '--buildDrafts --minify'
 ```
