@@ -13,7 +13,6 @@ fi
 # region script vars
 # vars used by script, do no edit
 FRESH="${INPUT_FRESH_BUILD}"
-# TODO: set CNAME as DnD files for input input, leave dotfiles here
 IGNORE_FILES=". .. .git CNAME ${INPUT_DO_NOT_DELETE_FILES}" # space-delimited array of files to protect when input_fresh_build option is set to true
 DEPLOY_TO_SUBMODULE="false" # false by default, set to true if input_submodule_branch is set
 
@@ -25,7 +24,7 @@ S_B="\033[1m"
 S_LG="\033[32m"
 # endregion
 
-# TODO: update to match fork sync
+# TODO: update to match fork sync OR pull git config out into its own action
 # region script functions
 configure_git_user() {
     git config --global user.name "${INPUT_GIT_EMAIL}"
@@ -97,7 +96,6 @@ check_source_commits() {
 	fi
 }
 
-# TODO: consider a recursive Xtheirs to ensure source overrides any conflicts that appear in deploy branch
 # pull source data into deploy branch to prep for new build
 merge_from_source() {
 	git merge ${INPUT_SOURCE_MERGE_ARGS} "${INPUT_SOURCE_BRANCH}" --no-commit --allow-unrelated-histories || fail_and_exit "error" "merge" "Source data could not be merged to the deploy branch. Check status and try again."
