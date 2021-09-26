@@ -49,15 +49,25 @@ inputs:
     description: 'Include additional Hugo build options (single string, space between options)'
     required: false
 
-  git_user:
-    description: 'Git user credentials for sigining commit'
-    required: false
-    default: 'Github Action - Hugo Build and Deploy'
+  git_config_user:
+    description: 'Git user credentials for sigining commit, (set to "null" for no config)'
+    required: true
+    default: 'GH Action - Upstream Sync'
 
-  git_email:
-    description: 'Git email credentials for sigining commit'
-    required: false
+  git_config_email:
+    description: 'Git email credentials for sigining commit (set to "null" for no config)'
+    required: true
     default: 'action@github.com'
+  
+  git_config_pull_rebase:
+    description: 'Git config for "pull.rebase" settings, usually recommend false for this action (set to "null" for no config)'
+    required: true
+    default: 'false''
+
+  test_mode:
+    description: If set to 'true', runs verification test on all inputs and any testable actions that use them
+    required: true
+    default: 'false'
 
 runs:
   using: 'node12'
