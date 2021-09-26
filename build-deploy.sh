@@ -193,7 +193,7 @@ fail_and_exit() {
 # Main script starts here
 
 # set commit credentials
-configure_git_user
+configure_git_user  # DONE
 
 # check if we're deploying to a submodule
 check_for_deploy_submodule

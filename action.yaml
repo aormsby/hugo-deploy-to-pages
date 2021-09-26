@@ -15,7 +15,7 @@ inputs:
     description: 'Repo branch, data source for site build'
     required: true
 
-  deploy_branch:
+  release_branch:
     description: 'Repo branch where site is built and deployed, separated from source branch for easy access to build history'
     required: true
   
