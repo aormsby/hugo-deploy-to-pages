@@ -14,7 +14,7 @@ checkout() {
         COMMAND_STATUS=$?
     else
         # release branch found, checkout branch
-        git checkout --depth=1 --recurse-submodules=on-demand origin "${INPUT_RELEASE_BRANCH}"
+        git checkout --recurse-submodules "${INPUT_RELEASE_BRANCH}"
         COMMAND_STATUS=$?
     fi
 
