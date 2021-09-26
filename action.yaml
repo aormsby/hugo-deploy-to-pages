@@ -10,6 +10,7 @@ inputs:
   hugo_publish_directory:
     description: 'Name of Hugo publish directory, Hugo default is "public"'
     required: true
+    default: 'public'
 
   source_branch:
     description: 'Repo branch, data source for site build'
@@ -21,7 +22,7 @@ inputs:
   
   source_merge_args:
     description:
-    required: false
+    required: true
     default: '-s recursive -Xtheirs'
 
   submodule_branch:
@@ -31,7 +32,7 @@ inputs:
     # please use with caution
   fresh_build:
     description: 'If true, clear public directory data before rebuild (ignores files in do-not-delete-files list)'
-    required: false
+    required: true
     default: false
 
     # input as a single string with filenames separated by a space
@@ -52,7 +53,7 @@ inputs:
   git_config_user:
     description: 'Git user credentials for sigining commit, (set to "null" for no config)'
     required: true
-    default: 'GH Action - Upstream Sync'
+    default: 'GH Action - Hugo Deploy to GH Pages'
 
   git_config_email:
     description: 'Git email credentials for sigining commit (set to "null" for no config)'
@@ -62,7 +63,7 @@ inputs:
   git_config_pull_rebase:
     description: 'Git config for "pull.rebase" settings, usually recommend false for this action (set to "null" for no config)'
     required: true
-    default: 'false''
+    default: 'false'
 
   test_mode:
     description: If set to 'true', runs verification test on all inputs and any testable actions that use them
