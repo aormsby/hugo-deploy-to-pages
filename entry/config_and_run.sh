@@ -17,7 +17,7 @@ if [ -z "${GITHUB_ACTIONS}" ] || [ "${GITHUB_ACTIONS}" = false ]; then
 	INPUT_SOURCE_BRANCH="main"
     # shellcheck disable=SC2034
     INPUT_RELEASE_BRANCH="test3"
-    
+
     # INPUT_SUBMODULE_BRANCH="test3"
     # INPUT_HUGO_PUBLISH_DIRECTORY="public"
 	# INPUT_COMMIT_MESSAGE="insert commit message here"
@@ -37,6 +37,8 @@ fi
 # IGNORE_FILES=". .. .git CNAME ${INPUT_DO_NOT_DELETE_FILES}" # space-delimited array of files to protect when input_fresh_build option is set to true
 # DEPLOY_TO_SUBMODULE="false" # false by default, set to true if input_submodule_branch is set
 
+# shellcheck disable=SC2034
+CURRENT_SOURCE_HEAD=$(git rev-parse "${INPUT_SOURCE_BRANCH}")
 
 # Fork to live action or test mode based on INPUT_TEST_MODE flag
 if [ "${INPUT_TEST_MODE}" = true ]; then

@@ -9,6 +9,10 @@ config_for_action
 . "${ACTION_PARENT_DIR}"/run/checkout_branch.sh
 checkout
 
+# build data io functions
+. "${ACTION_PARENT_DIR}"/run/io_build_data.sh
+read_build_data
+
 # merge from source to release branch
 if [ "${IS_NEW_BRANCH}" = true ]; then
         write_out -1 "New branch created, nothing to merge. Skipping merge step."
