@@ -22,6 +22,10 @@ else
     merge_from_source
 fi
 
+# build site
+. "${ACTION_PARENT_DIR}"/run/hugo_build.sh
+build_site
+
 # git config cleanup for workflow continuation
 # function from config_git.sh
 reset_git_config
