@@ -1,0 +1,16 @@
+#!/bin/sh
+
+merge_from_source() {
+    # shellcheck disable=SC2086
+    # --no-commit to make custom commit message and simplify number of commits in the process
+    git merge ${INPUT_MERGE_ARGS} --allow-unrelated-histories --no-commit "${INPUT_SOURCE_BRANCH}"
+    COMMAND_STATUS=$?
+
+    if [ "${COMMAND_STATUS}" != 0 ]; then
+        # exit on source branch merge fail
+        write_out "${COMMAND_STATUS}" "Source changes could not be merged into the release branch. Check 'merge_args' input and try again."
+    fi
+    
+    write_out -1 "Source changes merged into release branch"
+    write_out "g" "SUCCESS\n"
+}

@@ -20,8 +20,8 @@ inputs:
     description: 'Repo branch where site is built and deployed, separated from source branch for easy access to build history'
     required: true
   
-  source_merge_args:
-    description:
+  merge_args:
+    description: 'Args to pass when merging the source branch into the release branch, default is to take all changes from source'
     required: true
     default: '-s recursive -Xtheirs'
 

@@ -15,7 +15,9 @@ if [ -z "${GITHUB_ACTIONS}" ] || [ "${GITHUB_ACTIONS}" = false ]; then
 
     # shellcheck disable=SC2034
 	INPUT_SOURCE_BRANCH="main"
+    # shellcheck disable=SC2034
     INPUT_RELEASE_BRANCH="test3"
+    
     # INPUT_SUBMODULE_BRANCH="test3"
     # INPUT_HUGO_PUBLISH_DIRECTORY="public"
 	# INPUT_COMMIT_MESSAGE="insert commit message here"

@@ -7,17 +7,25 @@ checkout() {
     git fetch --depth=1 --recurse-submodules=on-demand origin "refs/heads/${INPUT_RELEASE_BRANCH}"
     COMMAND_STATUS=$?
 
+    # test command status from fetch action
     if [ "${COMMAND_STATUS}" != 0 ]; then
         # branch not found, create it from the source branch
         write_out -1 "Release branch not found, creating new release branch '${INPUT_RELEASE_BRANCH}' for deploy."
         git checkout -b "${INPUT_RELEASE_BRANCH}"
         COMMAND_STATUS=$?
+
+        # shellcheck disable=SC2034
+        IS_NEW_BRANCH=true
     else
         # release branch found, checkout branch
         git checkout --recurse-submodules "${INPUT_RELEASE_BRANCH}"
         COMMAND_STATUS=$?
+
+        # shellcheck disable=SC2034
+        IS_NEW_BRANCH=false
     fi
 
+    # test command status from checkout action
     if [ "${COMMAND_STATUS}" != 0 ]; then
         # exit on branch checkout fail
         write_out "${COMMAND_STATUS}" "Release branch '${INPUT_RELEASE_BRANCH}' could not be checked out."
