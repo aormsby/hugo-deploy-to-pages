@@ -1,0 +1,44 @@
+#!/bin/sh
+
+AUTO_COMMIT_DEFAULT_HEADER="Action auto-build #${LAST_BUILD_NUMBER}"
+# three lines for body
+AUTO_COMMIT_MESSAGE_BODY="${AUTO_COMMIT_DEFAULT_HEADER}
+Built from commit hash '${LAST_HASH}'
+Living on branch '${INPUT_SOURCE_BRANCH}'"
+###
+
+commit_with_message() {
+    if [ -z "${INPUT_COMMIT_MESSAGE}" ]; then
+        COMMIT_MESSAGE="${AUTO_COMMIT_DEFAULT_HEADER}"
+    else
+        COMMIT_MESSAGE="${INPUT_COMMIT_MESSAGE}"
+    fi
+
+    # header, empty line, then body
+    COMMIT_MESSAGE="${COMMIT_MESSAGE}
+
+    ${AUTO_COMMIT_MESSAGE_BODY}"
+    ###
+
+    git commit -a -m "${COMMIT_MESSAGE}"
+    COMMAND_STATUS=$?
+
+    if [ "${COMMAND_STATUS}" != 0 ]; then
+        # exit on git commit fail
+        write_out "${COMMAND_STATUS}" "Git commit step failed for some reason. Check output and try again."
+    fi
+}
+
+deploy_to_remote() {
+    # can always use --set-upstream because if branch already exists it does nothing
+    git push --set-upstream --recurse-submodules=on-demand origin "${INPUT_RELEASE_BRANCH}"
+    COMMAND_STATUS=$?
+
+    if [ "${COMMAND_STATUS}" != 0 ]; then
+        # exit on push fail
+        write_out "${COMMAND_STATUS}" "Unable to push commit to branch '${INPUT_RELEASE_BRANCH}'. Check output and try again."
+    fi
+
+    write_out -1 "Push to release branch complete"
+    write_out "g" "SUCCESS\n"
+}
