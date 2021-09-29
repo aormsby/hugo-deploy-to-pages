@@ -29,8 +29,7 @@ read_build_data() {
 
 # update stored build data after successful build
 update_build_data() {
-    LAST_HASH="${CURRENT_SOURCE_HEAD}"
-    # LAST_HASH="${GITHUB_SHA}"
+    LAST_HASH="${GITHUB_SHA}"
     LAST_BUILD_NUMBER=$((LAST_BUILD_NUMBER + 1))
 }
 
