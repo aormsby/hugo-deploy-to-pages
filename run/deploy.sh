@@ -1,11 +1,7 @@
 #!/bin/sh
 
 AUTO_COMMIT_DEFAULT_HEADER="Action auto-build #${LAST_BUILD_NUMBER}"
-# three lines for body
-AUTO_COMMIT_MESSAGE_BODY="${AUTO_COMMIT_DEFAULT_HEADER}
-Built from branch '${INPUT_SOURCE_BRANCH}',
-Commit hash '${LAST_HASH}'"
-###
+AUTO_COMMIT_MESSAGE_BODY="${AUTO_COMMIT_DEFAULT_HEADER},\nBuilt from branch '${INPUT_SOURCE_BRANCH}',\nCommit hash '${LAST_HASH}'"
 
 commit_with_message() {
     # required step to include all changes
@@ -17,11 +13,7 @@ commit_with_message() {
         COMMIT_MESSAGE="${INPUT_COMMIT_MESSAGE}"
     fi
 
-    # header, empty line, then body
-    COMMIT_MESSAGE="${COMMIT_MESSAGE}
-
-    ${AUTO_COMMIT_MESSAGE_BODY}"
-    ###
+    COMMIT_MESSAGE="${COMMIT_MESSAGE}\n\n${AUTO_COMMIT_MESSAGE_BODY}"
 
     git commit -m "${COMMIT_MESSAGE}"
     COMMAND_STATUS=$?
