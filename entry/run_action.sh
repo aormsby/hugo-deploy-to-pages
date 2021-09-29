@@ -17,8 +17,8 @@ read_build_data
 if [ "${IS_NEW_BRANCH}" = true ]; then
         write_out -1 "New branch created, nothing to merge. Skipping merge step."
 else
-    check_for_duplicate_build
     . "${ACTION_PARENT_DIR}"/run/merge_branch.sh
+    check_for_duplicate_build
     merge_from_source
 fi
 
