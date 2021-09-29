@@ -35,10 +35,8 @@ update_build_data() {
 }
 
 write_build_data() {
-    # # clear file data
-    echo >"${DEPLOY_DATA_FILENAME}"
-
-    echo "${KEY_LAST_HASH}=${LAST_HASH}" >>"${DEPLOY_DATA_FILENAME}"
+    # first entry is '>' to overwrite and start clean file, following are '>>' to append to file
+    echo "${KEY_LAST_HASH}=${LAST_HASH}" >"${DEPLOY_DATA_FILENAME}"
     echo "${KEY_LAST_BUILD_NUMBER}=${LAST_BUILD_NUMBER}" >>"${DEPLOY_DATA_FILENAME}"
     COMMAND_STATUS=$?
 
