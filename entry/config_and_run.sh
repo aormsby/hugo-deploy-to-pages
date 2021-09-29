@@ -38,7 +38,7 @@ fi
 # DEPLOY_TO_SUBMODULE="false" # false by default, set to true if input_submodule_branch is set
 
 # shellcheck disable=SC2034
-CURRENT_SOURCE_HEAD=$(git rev-parse "${INPUT_SOURCE_BRANCH}")
+# CURRENT_SOURCE_HEAD=$(git rev-parse "${INPUT_SOURCE_BRANCH}")
 
 # Fork to live action or test mode based on INPUT_TEST_MODE flag
 if [ "${INPUT_TEST_MODE}" = true ]; then

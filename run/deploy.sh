@@ -3,11 +3,14 @@
 AUTO_COMMIT_DEFAULT_HEADER="Action auto-build #${LAST_BUILD_NUMBER}"
 # three lines for body
 AUTO_COMMIT_MESSAGE_BODY="${AUTO_COMMIT_DEFAULT_HEADER}
-Built from commit hash '${LAST_HASH}'
-Living on branch '${INPUT_SOURCE_BRANCH}'"
+Built from branch '${INPUT_SOURCE_BRANCH}',
+Commit hash '${LAST_HASH}'"
 ###
 
 commit_with_message() {
+    # required step to include all changes
+    git add --all
+
     if [ -z "${INPUT_COMMIT_MESSAGE}" ]; then
         COMMIT_MESSAGE="${AUTO_COMMIT_DEFAULT_HEADER}"
     else
@@ -20,7 +23,7 @@ commit_with_message() {
     ${AUTO_COMMIT_MESSAGE_BODY}"
     ###
 
-    git commit -a -m "${COMMIT_MESSAGE}"
+    git commit -m "${COMMIT_MESSAGE}"
     COMMAND_STATUS=$?
 
     if [ "${COMMAND_STATUS}" != 0 ]; then
