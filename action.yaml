@@ -69,6 +69,11 @@ inputs:
     description: If set to 'true', runs verification test on all inputs and any testable actions that use them
     required: true
     default: 'false'
+  
+  strict_mode:
+    description: If set to 'false', hugo builds with warnings will be allowed to proceed.
+    required: true
+    default: true
 
 runs:
   using: 'node12'
