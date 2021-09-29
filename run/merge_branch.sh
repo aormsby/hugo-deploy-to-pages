@@ -4,7 +4,7 @@ check_for_duplicate_build() {
     # early exit if build has already been made
     if [ "${LAST_HASH}" = "${CURRENT_SOURCE_HEAD}" ]; then
     # if [ "${LAST_HASH}" = "${GITHUB_SHA}" ]; then
-        write_out 0 'No new changes in source branch. Skipping this build and exiting gracefully.'
+        write_out 0 'No changes since last build. Exiting gracefully.'
     fi
 }
 
