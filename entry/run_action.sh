@@ -22,19 +22,25 @@ else
     merge_from_source
 fi
 
-# build site
-. "${ACTION_PARENT_DIR}"/run/hugo_build.sh
-build_site
+# clear build directory if required
+if [ "${INPUT_FULL_REBUILD}" = true ]; then
+    . "${ACTION_PARENT_DIR}"/run/rebuild.sh
+    clean_output_directory
+fi
 
-# update data after successful build
-update_build_data
-write_build_data
+# # build site
+# . "${ACTION_PARENT_DIR}"/run/hugo_build.sh
+# build_site
 
-# build site
-. "${ACTION_PARENT_DIR}"/run/deploy.sh
-commit_with_message
-deploy_to_remote
+# # update data after successful build
+# update_build_data
+# write_build_data
 
-# git config cleanup for workflow continuation
-# function from config_git.sh
-reset_git_config
+# # build site
+# . "${ACTION_PARENT_DIR}"/run/deploy.sh
+# commit_with_message
+# deploy_to_remote
+
+# # git config cleanup for workflow continuation
+# # function from config_git.sh
+# reset_git_config

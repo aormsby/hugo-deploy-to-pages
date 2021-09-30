@@ -30,16 +30,16 @@ inputs:
     required: false
 
     # please use with caution
-  fresh_build:
-    description: 'If true, clear public directory data before rebuild (ignores files in do-not-delete-files list)'
+  full_rebuild:
+    description: 'If true, clear build directory and build entire site (clear step ignores files in the "do_not_delete_regex" pattern)'
     required: true
     default: false
 
-    # input as a single string with filenames separated by a space
-    # only exact file names are supported at this time
-    # these files are already skipped: '. .. .git CNAME'
-  do_not_delete_files:
-    description: 'Files to skip when cleaning deploy directory with "fresh" option'
+    # input as a single string with filenames separated by a pipe character
+    # saved list is a regex pattern
+    # these patterns are saved by default: '\.git|CNAME'
+  do_not_delete_regex:
+    description: 'Files to skip when cleaning deploy directory with "full_rebuild" option, regex input required (be careful with special characters like ".")'
     required: false
 
   commit_message:
@@ -71,7 +71,7 @@ inputs:
     default: 'false'
   
   strict_mode:
-    description: If set to 'false', hugo builds with warnings will be allowed to proceed.
+    description: If set to 'false', hugo builds with warnings will be allowed to proceed. Defaults to true.
     required: true
     default: true
 
