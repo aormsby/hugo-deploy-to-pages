@@ -28,19 +28,19 @@ if [ "${INPUT_FULL_REBUILD}" = true ]; then
     clean_output_directory
 fi
 
-# # build site
-# . "${ACTION_PARENT_DIR}"/run/hugo_build.sh
-# build_site
+# build site
+. "${ACTION_PARENT_DIR}"/run/hugo_build.sh
+build_site
 
-# # update data after successful build
-# update_build_data
-# write_build_data
+# update data after successful build
+update_build_data
+write_build_data
 
-# # build site
-# . "${ACTION_PARENT_DIR}"/run/deploy.sh
-# commit_with_message
-# deploy_to_remote
+# build site
+. "${ACTION_PARENT_DIR}"/run/deploy.sh
+commit_with_message
+deploy_to_remote
 
-# # git config cleanup for workflow continuation
-# # function from config_git.sh
-# reset_git_config
+# git config cleanup for workflow continuation
+# function from config_git.sh
+reset_git_config
