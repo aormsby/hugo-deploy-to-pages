@@ -20,7 +20,7 @@ commit_with_message() {
 
     if [ "${COMMAND_STATUS}" != 0 ]; then
         # exit on git commit fail
-        write_out "${COMMAND_STATUS}" "Git commit step failed for some reason. Check output and try again."
+        write_out "${COMMAND_STATUS}" "Git commit step failed. Check output and try again."
     fi
 }
 

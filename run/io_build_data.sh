@@ -45,7 +45,7 @@ write_build_data() {
 
     if [ "${COMMAND_STATUS}" != 0 ]; then
         # exit on write build data fail
-        write_out "${COMMAND_STATUS}" "Build data could not be written for some reason. Try again, and please file a detailed issue on Github if the problem persists."
+        write_out "${COMMAND_STATUS}" "Build data could not be written to '${DEPLOY_DATA_FILENAME}'. Try again, and please file a detailed issue on Github if the problem persists."
     fi
 
     write_out -1 "Build data written to '${DEPLOY_DATA_FILENAME}'"
