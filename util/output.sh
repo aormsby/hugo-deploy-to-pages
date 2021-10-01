@@ -59,8 +59,6 @@ write_out() {
     esac
 }
 
-# TODO: implement early exit func
 early_exit_cleanup() {
-    # reset_git_config
-    true
+    reset_git_config
 }
