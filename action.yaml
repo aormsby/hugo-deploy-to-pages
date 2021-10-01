@@ -79,6 +79,10 @@ inputs:
     required: true
     default: 'false'
 
+outputs:
+  was_new_build_created:
+    description: 'true when new build was made and published, false on failure or safe exit (nothing new to build)'
+
 runs:
   using: 'node12'
   main: 'main.js'

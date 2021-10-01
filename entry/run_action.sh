@@ -47,3 +47,6 @@ deploy_to_remote
 # git config cleanup for workflow continuation
 # function from config_git.sh
 reset_git_config
+
+# output 'was_new_build_created' value as true on successful new build
+echo "::set-output name=was_new_build_created::true"
