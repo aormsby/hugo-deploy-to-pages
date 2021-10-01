@@ -12,18 +12,22 @@ read_build_data() {
         LAST_BUILD_NUMBER=$(grep "${KEY_LAST_BUILD_NUMBER}=" "${DEPLOY_DATA_FILENAME}" | cut -d'=' -f2)
 
         # set default values for comparison to force a build if any value is missing
-        if [ -z "${LAST_HASH}" ] ||
-            [ -z "${LAST_BUILD_NUMBER}" ]; then
+        if [ -z "${LAST_HASH}" ]; then
             LAST_HASH=0
+            write_out "y" "WARNING - '${DEPLOY_DATA_FILENAME}' does not contain last build hash. Resetting to 0 for this build."
+        fi
+
+        if [ -z "${LAST_BUILD_NUMBER}" ]; then
             LAST_BUILD_NUMBER=0
-            write_out "y" "WARNING - '${DEPLOY_DATA_FILENAME}' build data found. Resetting build data and forcing a build to create the missing data."
+            write_out "y" "WARNING - '${DEPLOY_DATA_FILENAME}' does not contain last build number. Resetting to 0 for this build."
         fi
     else
-        # touch "${DEPLOY_DATA_FILENAME}"
         # shellcheck disable=SC2034
         LAST_HASH=0
         # shellcheck disable=SC2034
         LAST_BUILD_NUMBER=0
+
+        write_out "y" "WARNING - '${DEPLOY_DATA_FILENAME}' not found. New file will be created on successful build."
     fi
 }
 
