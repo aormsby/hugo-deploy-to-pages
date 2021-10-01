@@ -6,7 +6,7 @@
 config_for_action
 
 # checkout release branch
-. "${ACTION_PARENT_DIR}"/run/checkout_branch.sh
+. "${ACTION_PARENT_DIR}"/run/checkout_release_branch.sh
 checkout
 
 # build data io functions

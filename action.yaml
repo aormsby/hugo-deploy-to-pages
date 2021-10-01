@@ -13,21 +13,21 @@ inputs:
     default: 'public'
 
   source_branch:
-    description: 'Repo branch, data source for site build'
+    description: 'Branch with source code for the build, this should be checked out by actions/checkout step'
     required: true
 
   release_branch:
-    description: 'Repo branch where site is built and deployed, separated from source branch for easy access to build history'
+    description: 'Branch where site is built and deployed, separated from source branch for easy access to build history'
     required: true
   
   merge_args:
-    description: 'Args to pass when merging the source branch into the release branch, default is to take all changes from source'
+    description: 'Args for merging the source branch into the release branch, default is to take all changes from source'
     required: true
     default: '-s recursive -Xtheirs'
 
-  submodule_branch:
-    description: 'If your Hugo build directory contains a submodule (the build output is tracked in another repo), set the deployment branch in that submodule - ignore option if not using a submodule'
-    required: false
+  # submodule_branch:
+  #   description: 'If your Hugo build directory contains a submodule (the build output is tracked in another repo), set the deployment branch in that submodule - ignore option if not using a submodule'
+  #   required: false
 
     # please use with caution
   full_rebuild:
@@ -35,19 +35,18 @@ inputs:
     required: true
     default: false
 
-    # input as a single string with filenames separated by a pipe character
-    # saved list is a regex pattern
-    # these patterns are saved by default: '^\.+$|^\.git$|^CNAME$'
+    # takes regex patterns separated by pipe character
+    # these patterns are saved from cleaning by default: '^\.+$|^\.git$|^CNAME$'
   do_not_delete_regex:
-    description: 'Files to skip when cleaning deploy directory with "full_rebuild" option, regex input required (be careful with special characters like ".")'
+    description: 'Files to save when cleaning deploy directory with "full_rebuild" option, regex input required (be careful with special characters like ".")'
     required: false
 
   commit_message:
-    description: 'Appends a custom message to the auto-build commit message'
+    description: 'Custom commit message for release (default message provided, default description always added)'
     required: false
 
   hugo_build_options:
-    description: 'Include additional Hugo build options (single string, space between options)'
+    description: 'Include additional Hugo build options as a single string, e.g. "--buildFuture" or "--verbose""'
     required: false
 
   git_config_user:
@@ -64,11 +63,6 @@ inputs:
     description: 'Git config for "pull.rebase" settings, usually recommend false for this action (set to "null" for no config)'
     required: true
     default: 'false'
-
-  test_mode:
-    description: 'If set to "true", runs verification test on all inputs and any testable actions that use them'
-    required: true
-    default: 'false'
   
   strict_mode:
     description: 'If set to "false", hugo builds with warnings will be allowed to proceed. Defaults to "true".'
@@ -79,6 +73,11 @@ inputs:
     description: 'Set "true" to tag release with build number'
     required: true
     default: false
+
+  test_mode:
+    description: 'If set to "true", runs verification test on all inputs and any testable actions that use them'
+    required: true
+    default: 'false'
 
 runs:
   using: 'node12'
