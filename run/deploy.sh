@@ -25,8 +25,8 @@ commit_with_message() {
 }
 
 tag_release() {
-    write_out "y" "Tagging release with build number." 1>&1
-    git tag -a "${LAST_BUILD_NUMBER}" -m "Auto-build #${LAST_BUILD_NUMBER}"
+    write_out -1 "Tagging release with build number." 1>&1
+    git tag -a "auto-${LAST_BUILD_NUMBER}" -m "Auto-build #${LAST_BUILD_NUMBER}"
 }
 
 deploy_to_remote() {
