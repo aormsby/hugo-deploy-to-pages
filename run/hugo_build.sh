@@ -5,7 +5,7 @@ build_site() {
     write_out -1 "Running 'hugo' build command with build options '${INPUT_HUGO_BUILD_OPTIONS}'"
 
     # shellcheck disable=SC2086
-    HUGO_BUILD_OUTPUT=$(hugo ${INPUT_HUGO_BUILD_OPTIONS})
+    HUGO_BUILD_OUTPUT=$(hugo -d ${INPUT_HUGO_PUBLISH_DIRECTORY} ${INPUT_HUGO_BUILD_OPTIONS})
     COMMAND_STATUS=$?
 
     if [ "${COMMAND_STATUS}" != 0 ]; then
