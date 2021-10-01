@@ -15,7 +15,7 @@ read_build_data
 
 # merge from source to release branch
 if [ "${IS_NEW_BRANCH}" = true ]; then
-        write_out -1 "New branch created, nothing to merge. Skipping merge step."
+    write_out -1 "New branch created, nothing to merge. Skipping merge step."
 else
     . "${ACTION_PARENT_DIR}"/run/merge_branch.sh
     check_for_duplicate_build
@@ -39,6 +39,9 @@ write_build_data
 # build site
 . "${ACTION_PARENT_DIR}"/run/deploy.sh
 commit_with_message
+if [ "${INPUT_TAG_RELEASE}" = true ]; then
+    tag_release
+fi
 deploy_to_remote
 
 # git config cleanup for workflow continuation

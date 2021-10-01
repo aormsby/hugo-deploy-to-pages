@@ -24,9 +24,14 @@ commit_with_message() {
     fi
 }
 
+tag_release() {
+    write_out "y" "Tagging release with build number." 1>&1
+    git tag -a "${LAST_BUILD_NUMBER}" -m "Auto-build #${LAST_BUILD_NUMBER}"
+}
+
 deploy_to_remote() {
     # can always use --set-upstream because if branch already exists it does nothing
-    git push --set-upstream --recurse-submodules=on-demand origin "${INPUT_RELEASE_BRANCH}"
+    git push --set-upstream --recurse-submodules=on-demand --follow-tags origin "${INPUT_RELEASE_BRANCH}"
     COMMAND_STATUS=$?
 
     if [ "${COMMAND_STATUS}" != 0 ]; then
