@@ -34,6 +34,11 @@ inputs:
     description: 'If true, clear build directory and build entire site (clear step ignores files in the "do_not_delete_regex" pattern)'
     required: true
     default: false
+  
+  full_rebuild_verbose:
+    description: 'If true, prints out saved and deleted files and directories before cleaning operation'
+    required: true
+    default: false
 
     # takes regex patterns separated by pipe character
     # these patterns are saved from cleaning by default: '^\.+$|^\.git$|^CNAME$'

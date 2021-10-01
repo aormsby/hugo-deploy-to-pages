@@ -31,12 +31,6 @@ if [ -z "${GITHUB_ACTIONS}" ] || [ "${GITHUB_ACTIONS}" = false ]; then
     INPUT_GIT_CONFIG_PULL_REBASE=true
 fi
 
-# TODO: set values on run based on input - do I even need these?
-# vars used by script, do no edit
-# FRESH="${INPUT_FRESH_BUILD}"
-# IGNORE_FILES=". .. .git CNAME ${INPUT_DO_NOT_DELETE_FILES}" # space-delimited array of files to protect when input_fresh_build option is set to true
-# DEPLOY_TO_SUBMODULE="false" # false by default, set to true if input_submodule_branch is set
-
 # Fork to live action or test mode based on INPUT_TEST_MODE flag
 if [ "${INPUT_TEST_MODE}" = true ]; then
     write_out "b" "Running TESTS...\n"
