@@ -37,7 +37,7 @@ inputs:
 
     # input as a single string with filenames separated by a pipe character
     # saved list is a regex pattern
-    # these patterns are saved by default: '\.git|CNAME'
+    # these patterns are saved by default: '^\.+$|^\.git$|^CNAME$'
   do_not_delete_regex:
     description: 'Files to skip when cleaning deploy directory with "full_rebuild" option, regex input required (be careful with special characters like ".")'
     required: false

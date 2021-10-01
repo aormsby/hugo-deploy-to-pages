@@ -1,6 +1,6 @@
 #!/bin/sh
 
-REGEX_IGNORE="\.|\.\.|\.git$|CNAME"
+REGEX_IGNORE="^\.+$|^\.git$|^CNAME$"
 
 # append regex if user provided more specific input
 if [ -n "${INPUT_DO_NOT_DELETE_REGEX}" ]; then
