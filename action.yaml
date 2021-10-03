@@ -25,18 +25,18 @@ inputs:
     required: true
     default: '-s recursive -Xtheirs'
 
-  # submodule_branch:
-  #   description: 'If your Hugo build directory contains a submodule (the build output is tracked in another repo), set the deployment branch in that submodule - ignore option if not using a submodule'
-  #   required: false
+  submodule_release_branch:
+    description: 'If your Hugo publish directory references a git submodule, this sets the branch to publish to in that submodule'
+    required: false
 
     # please use with caution
   full_rebuild:
-    description: 'If true, clear build directory and build entire site (clear step ignores files in the "do_not_delete_regex" pattern)'
+    description: "If 'true', clear build directory and build entire site (clear step ignores files in the 'do_not_delete_regex' pattern)"
     required: true
     default: false
   
   full_rebuild_verbose:
-    description: 'If true, prints out saved and deleted files and directories before cleaning operation'
+    description: "If 'true', prints out saved and deleted files and directories before cleaning operation"
     required: true
     default: false
 

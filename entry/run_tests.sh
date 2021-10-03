@@ -21,4 +21,5 @@ fi
 
 . "${ACTION_PARENT_DIR}"/test/verify_publish_submodule.sh
 verify_publish_submodule
-verify_submodule_checkout
+verify_submodule_cloned
+verify_submodule_branch_exists

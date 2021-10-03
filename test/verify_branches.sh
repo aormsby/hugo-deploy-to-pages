@@ -26,15 +26,3 @@ test_release_branch_exists() {
     fi
 
 }
-
-# TODO: write submodule test
-test_submodule_exists() {
-    # Maybe I can check git submodule refs instead of having an input for the submodule directory
-    true
-}
-
-# TODO: write submodule branch test
-test_submodule_deploy_branch_exists() {
-    # Make check in submodule repo for submodule deploy branch
-    true
-}
