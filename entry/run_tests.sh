@@ -19,7 +19,7 @@ else
     write_out "b" "'full_rebuild' not enabled. Skipping tests.\n"
 fi
 
-. "${ACTION_PARENT_DIR}"/test/verify_publish_submodule.sh
+. "${ACTION_PARENT_DIR}"/test/verify_submodule.sh
 verify_publish_submodule
 verify_submodule_cloned
 verify_submodule_branch_exists
