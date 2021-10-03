@@ -15,9 +15,11 @@ test_source_branch_exists() {
 test_release_branch_exists() {
     write_out "y" "TEST"
     write_out -1 "[Verify Release Branch] -> tests 'release_branch' input"
-    VERIFY_SOURCE_BRANCH=$(git rev-parse --verify --quiet "remotes/origin/${INPUT_RELEASE_BRANCH}")
 
-    if [ -z "${VERIFY_SOURCE_BRANCH}" ]; then
+    git fetch --quiet --depth=1 origin "refs/heads/${INPUT_RELEASE_BRANCH}"
+    VERIFY_RELEASE_BRANCH=$(git rev-parse --verify "remotes/origin/${INPUT_RELEASE_BRANCH}")
+
+    if [ -z "${VERIFY_RELEASE_BRANCH}" ]; then
         write_out "y" "WARNING - no branch '${INPUT_RELEASE_BRANCH}' found\nA new branch will be created when you run the action. Please make sure you want this.\n"
     else
         write_out "g" "PASSED\n"
