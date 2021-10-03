@@ -18,7 +18,7 @@ test_release_branch_exists() {
     VERIFY_SOURCE_BRANCH=$(git rev-parse --verify --quiet "remotes/origin/${INPUT_RELEASE_BRANCH}")
 
     if [ -z "${VERIFY_SOURCE_BRANCH}" ]; then
-        write_out "y" "WARNING - no branch '${INPUT_RELEASE_BRANCH}' found\nA new branch will be created when you run the action. Please make sure you want this."
+        write_out "y" "WARNING - no branch '${INPUT_RELEASE_BRANCH}' found\nA new branch will be created when you run the action. Please make sure you want this.\n"
     else
         write_out "g" "PASSED\n"
     fi
