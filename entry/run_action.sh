@@ -6,7 +6,7 @@
 config_for_action
 
 # checkout release branch
-. "${ACTION_PARENT_DIR}"/run/checkout.sh
+. "${ACTION_PARENT_DIR}"/run/checkout_branches.sh
 checkout_release_branch
 checkout_submodule_branch
 
