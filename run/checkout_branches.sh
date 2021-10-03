@@ -39,7 +39,7 @@ checkout_submodule_branch() {
     write_out -1 "Checking out submodule branch '${INPUT_SUBMODULE_RELEASE_BRANCH}' for deploy."
 
     # only perform submodule steps if input was given
-    if [ -z "${INPUT_SUBMODULE_RELEASE_BRANCH}" ]; then
+    if [ -n "${INPUT_SUBMODULE_RELEASE_BRANCH}" ]; then
         # set for later checks
         PUBLISH_TO_SUBMODULE=true
 
