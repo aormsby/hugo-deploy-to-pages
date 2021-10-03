@@ -15,4 +15,10 @@ if [ "${INPUT_FULL_REBUILD}" = true ]; then
     print_regex_patterns
     print_files_to_save
     print_files_to_delete
+else
+    write_out "y" "'full_rebuild' not enabled. Skipping tests."
 fi
+
+. "${ACTION_PARENT_DIR}"/test/verify_publish_submodule.sh
+verify_publish_submodule
+verify_submodule_checkout
