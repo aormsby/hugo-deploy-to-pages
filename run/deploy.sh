@@ -3,10 +3,7 @@
 AUTO_COMMIT_DEFAULT_HEADER="Action auto-build #${LAST_BUILD_NUMBER}"
 AUTO_COMMIT_MESSAGE_BODY=$(printf '%s,\n%s,\n%s' "${AUTO_COMMIT_DEFAULT_HEADER}" "Built from branch '${INPUT_SOURCE_BRANCH}'" "Commit hash '${LAST_HASH}'")
 
-commit_with_message() {
-    # required step to include all changes
-    git add --all
-
+set_commit_message() {
     if [ -z "${INPUT_COMMIT_MESSAGE}" ]; then
         COMMIT_MESSAGE="${AUTO_COMMIT_DEFAULT_HEADER}"
     else
@@ -14,13 +11,31 @@ commit_with_message() {
     fi
 
     COMMIT_MESSAGE=$(printf '%s\n\n%s' "${COMMIT_MESSAGE}" "${AUTO_COMMIT_MESSAGE_BODY}")
+}
 
+# submodule project with latest build
+commit_submodule_with_message() {
+     # required steps to include all changes
+    git -C "${INPUT_HUGO_PUBLISH_DIRECTORY}" add --all
+    git -C "${INPUT_HUGO_PUBLISH_DIRECTORY}" commit -m "${COMMIT_MESSAGE}"
+    COMMAND_STATUS=$?
+
+    if [ "${COMMAND_STATUS}" != 0 ]; then
+        # exit on git commit fail
+        write_out "${COMMAND_STATUS}" "Git commit step failed in publish directory submodule. Check output and try again."
+    fi
+}
+
+# root project, must happen after submodule commit to get latest submodule hash
+commit_with_message() {
+    # required steps to include all changes
+    git add --all
     git commit -m "${COMMIT_MESSAGE}"
     COMMAND_STATUS=$?
 
     if [ "${COMMAND_STATUS}" != 0 ]; then
         # exit on git commit fail
-        write_out "${COMMAND_STATUS}" "Git commit step failed. Check output and try again."
+        write_out "${COMMAND_STATUS}" "Git commit step failed in root project directory. Check output and try again."
     fi
 }
 
