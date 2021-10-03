@@ -41,6 +41,19 @@ tag_release() {
 }
 
 deploy_to_remote() {
+    #submodule first
+    # can always use --set-upstream because if branch already exists it does nothing
+    if [ "${PUBLISH_TO_SUBMODULE}" ]; then
+        git -C "${INPUT_HUGO_PUBLISH_DIRECTORY}" push --set-upstream --recurse-submodules=on-demand --follow-tags origin "${INPUT_SUBMODULE_RELEASE_BRANCH}"
+        COMMAND_STATUS=$?
+
+        if [ "${COMMAND_STATUS}" != 0 ]; then
+            # exit on push fail
+            write_out "${COMMAND_STATUS}" "Unable to push commit to submodule branch '${INPUT_SUBMODULE_RELEASE_BRANCH}'. Check output and try again."
+        fi
+    fi
+
+    # root projet
     # can always use --set-upstream because if branch already exists it does nothing
     git push --set-upstream --recurse-submodules=on-demand --follow-tags origin "${INPUT_RELEASE_BRANCH}"
     COMMAND_STATUS=$?
