@@ -60,7 +60,7 @@ write_out() {
 }
 
 early_exit_cleanup() {
-    reset_git_config
+    reset_config_after_action
     
     # output 'was_new_build_created' value as false to workflow environment
     echo "::set-output name=was_new_build_created::false"

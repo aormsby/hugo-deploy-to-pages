@@ -13,29 +13,25 @@ set_commit_message() {
     COMMIT_MESSAGE=$(printf '%s\n\n%s' "${COMMIT_MESSAGE}" "${AUTO_COMMIT_MESSAGE_BODY}")
 }
 
-# submodule project with latest build
-commit_submodule_with_message() {
-     # required steps to include all changes
-    git -C "${INPUT_HUGO_PUBLISH_DIRECTORY}" add --all
-    git -C "${INPUT_HUGO_PUBLISH_DIRECTORY}" commit -m "${COMMIT_MESSAGE}"
-    COMMAND_STATUS=$?
-
-    if [ "${COMMAND_STATUS}" != 0 ]; then
-        # exit on git commit fail
-        write_out "${COMMAND_STATUS}" "Git commit step failed in publish directory submodule. Check output and try again."
+commit_build() {
+    #submodule first
+    if [ "${PUBLISH_TO_SUBMODULE}" ]; then
+        commit_with_message "${INPUT_HUGO_PUBLISH_DIRECTORY}"
     fi
+
+    # root project
+    commit_with_message "."
 }
 
-# root project, must happen after submodule commit to get latest submodule hash
 commit_with_message() {
     # required steps to include all changes
-    git add --all
-    git commit -m "${COMMIT_MESSAGE}"
+    git -C "${1}" add --all
+    git -C "${1}" commit -m "${COMMIT_MESSAGE}"
     COMMAND_STATUS=$?
 
     if [ "${COMMAND_STATUS}" != 0 ]; then
         # exit on git commit fail
-        write_out "${COMMAND_STATUS}" "Git commit step failed in root project directory. Check output and try again."
+        write_out "${COMMAND_STATUS}" "Git commit step failed. Check output and try again."
     fi
 }
 

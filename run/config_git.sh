@@ -4,7 +4,12 @@
 config_for_action() {
     write_out -1 "Setting git config from input vars. (Skips config for all inputs set to 'null'.)"
     get_current_user_config
-    set_git_config "${INPUT_GIT_CONFIG_USER}" "${INPUT_GIT_CONFIG_EMAIL}" "${INPUT_GIT_CONFIG_PULL_REBASE}"
+    set_git_config "."
+
+    if [ "${PUBLISH_TO_SUBMODULE}" = true ]; then
+        set_git_config "${INPUT_HUGO_PUBLISH_DIRECTORY}"
+    fi
+
     write_out "g" "SUCCESS\n"
 }
 
@@ -19,37 +24,44 @@ get_current_user_config() {
 set_git_config() {
     # only set user if config is empty
     if [ "${CURRENT_USER}" = "null" ] &&
-        [ "${1}" != "null" ]; then
-        git config user.name "${1}"
+        [ "${INPUT_GIT_CONFIG_USER}" != "null" ]; then
+        git -C "${1}" config user.name "${INPUT_GIT_CONFIG_USER}"
     fi
 
     # only set email if config is empty
     if [ "${CURRENT_EMAIL}" = "null" ] &&
-        [ "${2}" != "null" ]; then
-        git config user.email "${2}"
+        [ "${INPUT_GIT_CONFIG_EMAIL}" != "null" ]; then
+        git -C "${1}" config user.email "${INPUT_GIT_CONFIG_EMAIL}"
     fi
 
     # always set pull.rebase with worflow value (default false)
-    git config pull.rebase "${3}"
+    git -C "${1}" config pull.rebase "${INPUT_GIT_CONFIG_PULL_REBASE}"
+}
+
+reset_config_after_action() {
+    write_out -1 "Resetting git config to previous settings."
+    reset_git_config "."
+
+    if [ "${PUBLISH_TO_SUBMODULE}" = true ]; then
+        reset_git_config "${INPUT_HUGO_PUBLISH_DIRECTORY}"
+    fi
+    
+    write_out "b" "Reset Complete\n"
 }
 
 # reset to original user config values
 reset_git_config() {
-    write_out -1 "Resetting git config to previous settings."
-
     if [ "${CURRENT_USER}" = "null" ]; then
-        git config --unset user.name
+        git -C "${1}" config --unset user.name
     else
-        git config user.name "${CURRENT_USER}"
+        git -C "${1}" config user.name "${CURRENT_USER}"
     fi
 
     if [ "${CURRENT_EMAIL}" = "null" ]; then
-        git config --unset user.email
+        git -C "${1}" config --unset user.email
     else
-        git config user.email "${CURRENT_EMAIL}"
+        git -C "${1}" config user.email "${CURRENT_EMAIL}"
     fi
 
-    git config pull.rebase "${CURRENT_PULL_CONFIG}"
-
-    write_out "b" "Reset Complete\n"
+    git -C "${1}" config pull.rebase "${CURRENT_PULL_CONFIG}"
 }

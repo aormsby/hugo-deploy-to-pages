@@ -8,7 +8,10 @@ config_for_action
 # checkout release branch
 . "${ACTION_PARENT_DIR}"/run/checkout_branches.sh
 checkout_release_branch
-checkout_submodule_branch
+
+if [ "${PUBLISH_TO_SUBMODULE}" = true ]; then
+    checkout_submodule_branch
+fi
 
 # build data io functions
 . "${ACTION_PARENT_DIR}"/run/io_build_data.sh
@@ -40,14 +43,7 @@ write_build_data
 # build site
 . "${ACTION_PARENT_DIR}"/run/deploy.sh
 set_commit_message
-
-# submodule project
-if [ "${PUBLISH_TO_SUBMODULE}" = true ]; then
-    commit_submodule_with_message
-fi
-
-# root project
-commit_with_message
+commit_build
 
 if [ "${INPUT_TAG_RELEASE}" = true ]; then
     tag_release
@@ -57,7 +53,7 @@ deploy_to_remote
 
 # git config cleanup for workflow continuation
 # function from config_git.sh
-reset_git_config
+reset_config_after_action
 
 # output 'was_new_build_created' value as true on successful new build
 echo "::set-output name=was_new_build_created::true"

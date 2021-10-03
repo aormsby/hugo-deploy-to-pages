@@ -36,36 +36,26 @@ checkout_release_branch() {
 }
 
 checkout_submodule_branch() {
-    write_out -1 "Checking out submodule branch '${INPUT_SUBMODULE_RELEASE_BRANCH}' for deploy."
+    write_out -1 "Checking out submodule branch '${INPUT_SUBMODULE_RELEASE_BRANCH}' for deploy.\n"
 
-    # only perform submodule steps if input was given
-    if [ -n "${INPUT_SUBMODULE_RELEASE_BRANCH}" ]; then
-        # set for later checks
-        PUBLISH_TO_SUBMODULE=true
+    # fetch submodule release branch
+    git -C "${INPUT_HUGO_PUBLISH_DIRECTORY}" fetch --quiet --depth=1 origin "refs/heads/${INPUT_SUBMODULE_RELEASE_BRANCH}"
+    COMMAND_STATUS=$?
 
-        # fetch submodule release branch
-        git -C "${INPUT_HUGO_PUBLISH_DIRECTORY}" fetch --quiet --depth=1 origin "refs/heads/${INPUT_SUBMODULE_RELEASE_BRANCH}"
-        COMMAND_STATUS=$?
-
-        if [ "${COMMAND_STATUS}" != 0 ]; then
-            # exit on branch fetch fail
-            write_out "${COMMAND_STATUS}" "Submodule release branch '${INPUT_SUBMODULE_RELEASE_BRANCH}' could not be fetched. Check input and try again."
-        fi
-
-        # checkout submodule release branch
-        git -C "${INPUT_HUGO_PUBLISH_DIRECTORY}" checkout "${INPUT_SUBMODULE_RELEASE_BRANCH}"
-        COMMAND_STATUS=$?
-
-        if [ "${COMMAND_STATUS}" != 0 ]; then
-            # exit on branch checkout fail
-            write_out "${COMMAND_STATUS}" "Submodule release branch '${INPUT_SUBMODULE_RELEASE_BRANCH}' could not be checked out. Check input and try again."
-        fi
-
-        write_out -1 "Submodule branch checked out."
-        write_out "g" "SUCCESS\n"
-    else
-        write_out -1 "No submodule to checkout. Skipping all submodule steps."
-        # shellcheck disable=SC2034
-        PUBLISH_TO_SUBMODULE=false
+    if [ "${COMMAND_STATUS}" != 0 ]; then
+        # exit on branch fetch fail
+        write_out "${COMMAND_STATUS}" "Submodule release branch '${INPUT_SUBMODULE_RELEASE_BRANCH}' could not be fetched. Check input and try again."
     fi
+
+    # checkout submodule release branch
+    git -C "${INPUT_HUGO_PUBLISH_DIRECTORY}" checkout "${INPUT_SUBMODULE_RELEASE_BRANCH}"
+    COMMAND_STATUS=$?
+
+    if [ "${COMMAND_STATUS}" != 0 ]; then
+        # exit on branch checkout fail
+        write_out "${COMMAND_STATUS}" "Submodule release branch '${INPUT_SUBMODULE_RELEASE_BRANCH}' could not be checked out. Check input and try again."
+    fi
+
+    write_out -1 "Submodule branch checked out."
+    write_out "g" "SUCCESS\n"
 }
