@@ -9,10 +9,6 @@ config_for_action
 . "${ACTION_PARENT_DIR}"/run/checkout_branches.sh
 checkout_release_branch
 
-if [ "${PUBLISH_TO_SUBMODULE}" = true ]; then
-    checkout_submodule_branch
-fi
-
 # build data io functions
 . "${ACTION_PARENT_DIR}"/run/io_build_data.sh
 read_build_data
@@ -24,6 +20,11 @@ else
     . "${ACTION_PARENT_DIR}"/run/merge_branch.sh
     check_for_duplicate_build
     merge_from_source
+fi
+
+# actually check out submodule branch after getting a clean merge
+if [ "${PUBLISH_TO_SUBMODULE}" = true ]; then
+    checkout_submodule_branch
 fi
 
 # clear build directory if required

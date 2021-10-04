@@ -36,7 +36,7 @@ checkout_release_branch() {
 }
 
 checkout_submodule_branch() {
-    write_out -1 "Checking out submodule branch '${INPUT_SUBMODULE_RELEASE_BRANCH}' for deploy.\n"
+    write_out -1 "Checking out submodule branch '${INPUT_SUBMODULE_RELEASE_BRANCH}' for deploy."
 
     # fetch submodule release branch
     git -C "${INPUT_HUGO_PUBLISH_DIRECTORY}" fetch --quiet --depth=1 origin "refs/heads/${INPUT_SUBMODULE_RELEASE_BRANCH}"

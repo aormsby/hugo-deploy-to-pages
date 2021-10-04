@@ -51,6 +51,8 @@ deploy_to_remote() {
             # exit on push fail
             write_out "${COMMAND_STATUS}" "Unable to push commit to submodule branch '${INPUT_SUBMODULE_RELEASE_BRANCH}'. Check output and try again."
         fi
+
+        write_out "b" "Push to submodule branch complete"
     fi
 
     # root projet
@@ -63,6 +65,6 @@ deploy_to_remote() {
         write_out "${COMMAND_STATUS}" "Unable to push commit to branch '${INPUT_RELEASE_BRANCH}'. Check output and try again."
     fi
 
-    write_out -1 "Push to release branch complete"
+    write_out "b" "Push to release branch complete"
     write_out "g" "SUCCESS\n"
 }
