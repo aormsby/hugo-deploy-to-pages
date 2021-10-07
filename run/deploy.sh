@@ -1,7 +1,7 @@
 #!/bin/sh
 
 AUTO_COMMIT_DEFAULT_HEADER="Action auto-build #${LAST_BUILD_NUMBER}"
-AUTO_COMMIT_MESSAGE_BODY=$(printf '%s,\n%s,\n%s' "${AUTO_COMMIT_DEFAULT_HEADER}" "Built from branch '${INPUT_SOURCE_BRANCH}'" "Commit hash '${LAST_HASH}'")
+AUTO_COMMIT_MESSAGE_BODY=$(printf '%s,\n%s,\n%s,\n%s' "${AUTO_COMMIT_DEFAULT_HEADER}" "Built from branch '${INPUT_SOURCE_BRANCH}'" "Source commit hash '${LAST_SOURCE_HASH}'" "Source commit time '${LAST_SOURCE_BUILD_TIME}'")
 
 set_commit_message() {
     if [ -z "${INPUT_COMMIT_MESSAGE}" ]; then
