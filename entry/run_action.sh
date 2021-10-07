@@ -5,9 +5,15 @@
 . "${ACTION_PARENT_DIR}"/run/config_git.sh
 config_for_action
 
+# TODO: Add steps for dealing with shallow repos :/
+
 # checkout release branch
 . "${ACTION_PARENT_DIR}"/run/checkout_branches.sh
 checkout_release_branch
+
+if [ "${PUBLISH_TO_SUBMODULE}" = true ]; then
+    checkout_submodule_branch
+fi
 
 # build data io functions
 . "${ACTION_PARENT_DIR}"/run/io_build_data.sh
@@ -22,15 +28,10 @@ else
     merge_from_source
 fi
 
-# actually check out submodule branch after getting a clean merge
-if [ "${PUBLISH_TO_SUBMODULE}" = true ]; then
-    checkout_submodule_branch
-fi
-
 # clear build directory if required
 if [ "${INPUT_FULL_REBUILD}" = true ]; then
     . "${ACTION_PARENT_DIR}"/run/rebuild.sh
-    clean_output_directory
+    clean_publish_directory
 fi
 
 # build site

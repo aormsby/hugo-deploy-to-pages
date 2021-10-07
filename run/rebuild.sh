@@ -7,7 +7,7 @@ if [ -n "${INPUT_DO_NOT_DELETE_REGEX}" ]; then
     REGEX_IGNORE="${REGEX_IGNORE}|${INPUT_DO_NOT_DELETE_REGEX}"
 fi
 
-clean_output_directory() {
+clean_publish_directory() {
     write_out "y" "'Full rebuild' option enabled. Deleting previous build files." 1>&1
 
     # print ignore pattern for reference
