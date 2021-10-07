@@ -4,7 +4,9 @@
 checkout_release_branch() {
     write_out -1 "Checking out release branch '${INPUT_RELEASE_BRANCH}' for deploy."
 
-    git fetch --depth=1 --recurse-submodules=on-demand origin "refs/heads/${INPUT_RELEASE_BRANCH}"
+    # TODO: solve with depth for shallow checkout
+    # git fetch --depth=1 --recurse-submodules=on-demand origin "refs/heads/${INPUT_RELEASE_BRANCH}"
+    git fetch --recurse-submodules=on-demand origin "refs/heads/${INPUT_RELEASE_BRANCH}"
     COMMAND_STATUS=$?
 
     # test command status from fetch action
@@ -39,7 +41,9 @@ checkout_submodule_branch() {
     write_out -1 "Checking out submodule branch '${INPUT_SUBMODULE_RELEASE_BRANCH}' for deploy.\n"
 
     # fetch submodule release branch
-    git -C "${INPUT_HUGO_PUBLISH_DIRECTORY}" fetch --quiet --depth=1 origin "refs/heads/${INPUT_SUBMODULE_RELEASE_BRANCH}"
+    # TODO: solve with depth for shallow checkout
+    # git -C "${INPUT_HUGO_PUBLISH_DIRECTORY}" fetch --quiet --depth=1 origin "refs/heads/${INPUT_SUBMODULE_RELEASE_BRANCH}"
+    git -C "${INPUT_HUGO_PUBLISH_DIRECTORY}" fetch --quiet origin "refs/heads/${INPUT_SUBMODULE_RELEASE_BRANCH}"
     COMMAND_STATUS=$?
 
     if [ "${COMMAND_STATUS}" != 0 ]; then
