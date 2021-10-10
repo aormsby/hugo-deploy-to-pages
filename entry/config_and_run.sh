@@ -16,10 +16,9 @@ if [ -z "${GITHUB_ACTIONS}" ] || [ "${GITHUB_ACTIONS}" = false ]; then
     INPUT_SOURCE_BRANCH="main"
     INPUT_RELEASE_BRANCH="test3"
 
-    # INPUT_SUBMODULE_BRANCH="test3"
+    # INPUT_SUBMODULE_RELEASE_BRANCH="test3"
     # INPUT_HUGO_PUBLISH_DIRECTORY="public"
     # INPUT_COMMIT_MESSAGE="insert commit message here"
-    # SOURCE_HASH="jfkdlf"
 
     INPUT_GIT_CONFIG_USER="Geronimo Jones"
     INPUT_GIT_CONFIG_EMAIL="GJones@geronimo.woah"

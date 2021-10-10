@@ -17,7 +17,7 @@ inputs:
     required: true
 
   release_branch:
-    description: 'Branch where site is built and deployed, separated from source branch for easy access to build history'
+    description: 'Branch where site is built and deployed, separate from source branch for easy access to build history'
     required: true
   
   merge_args:
@@ -26,7 +26,7 @@ inputs:
     default: '-s recursive -Xtheirs'
 
   submodule_release_branch:
-    description: 'If your Hugo publish directory references a git submodule, this sets the branch to publish to in that submodule'
+    description: 'If your Hugo publish directory is a git submodule inside your main project, this sets the branch to publish to in that submodule'
     required: false
 
     # please use with caution
@@ -36,7 +36,7 @@ inputs:
     default: false
   
   full_rebuild_verbose:
-    description: "If 'true', prints out saved and deleted files and directories before cleaning operation"
+    description: "If 'true', prints out saved/deleted files and directories before performing the cleaning operation"
     required: true
     default: false
 
@@ -57,7 +57,7 @@ inputs:
   git_config_user:
     description: 'Git user credentials for sigining commit, (set to "null" for no config)'
     required: true
-    default: 'GH Action - Hugo Deploy to GH Pages'
+    default: 'Action - Hugo Deploy'
 
   git_config_email:
     description: 'Git email credentials for sigining commit (set to "null" for no config)'
@@ -70,7 +70,7 @@ inputs:
     default: 'false'
   
   strict_mode:
-    description: 'If set to "false", hugo builds with warnings will be allowed to proceed. Defaults to "true".'
+    description: 'If set to "false", hugo builds with warnings will be allowed to proceed. Defaults to "true", Hugo warnings will cause action failure.'
     required: true
     default: true
 
