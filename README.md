@@ -19,7 +19,7 @@ This action supports deploying to the same repository or pushing build data to a
 
 [Add a workflow](https://docs.github.com/en/actions/quickstart#creating-your-first-workflow) to your repo that includes this action ([sample below](#sample-workflow)). Please note that scheduled workflows only run on the default branch of a repo.
 
-For git checkout, I use [actions/checkout](https://github.com/actions/checkout). For installing Hugo on the runner, I use [peaceiris/actions-hugo](https://github.com/peaceiris/actions-hugo). A token or SSH is needed for checking out private submodule repos.
+For git checkout, I use [actions/checkout](https://github.com/actions/checkout).(A token or SSH is needed for checking out private submodule repos.) For installing Hugo on the runner, I use [peaceiris/actions-hugo](https://github.com/peaceiris/actions-hugo).
 
 ### Input Variables
 
@@ -88,9 +88,12 @@ jobs:
     - name: Checkout repo on source_branch
       uses: actions/checkout@v2
       with:
-        submodules: 'recursive'   # <<recommended if project uses git submodules for any purpose, required if deploying to git submodule directory>>
-        token: ${{ secrets.ACTION_TEST }}   # <<if needed for private repos>>
-        # fetch-depth: '0'    <<currently required if hugo_publish_directory is a git submodule>>
+        submodules: 'recursive'
+        # <<recommended if project uses git submodules for any purpose>>
+        # <<required if deploying to git submodule directory>>
+        token: ${{ secrets.MY_SECRET }}   # <<if needed for private repos>>
+        fetch-depth: '0'
+        # <<fetch-depth: '0' currently required until shallow clone problems are solved>>
         
     - name: Build site and push to release branch
       uses: aormsby/hugo-deploy-to-pages@v2
@@ -98,7 +101,7 @@ jobs:
       with:
         source_branch: 'main'
         release_branch: 'bon-voyage'
-        submodule_release_branch: 'subbed'
+        # submodule_release_branch: 'subbed' <<only provide if you are publishing to directory with git submodule>>
         # full_rebuild: true
         # hugo_publish_directory: 'documents'   <<publish to another directory if needed>>
         # hugo_build_options: '-D --minify --ignoreCache' <<hugo build cis customizable>>
