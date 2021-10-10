@@ -17,7 +17,7 @@ build_site() {
 
     write_out -1 "${HUGO_BUILD_OUTPUT}"
 
-    if [ "${INPUT_STRICT_MODE}" = true ] &&
+    if [ "${INPUT_STRICT_BUILD_MODE}" = true ] &&
         [ -n "${HUGO_WARNINGS}" ]; then
         COMMAND_STATUS=255
         write_out "${COMMAND_STATUS}" "Hugo build failed with warnings in 'strict mode'. Check output for details."

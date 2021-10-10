@@ -69,7 +69,7 @@ inputs:
     required: true
     default: 'false'
   
-  strict_mode:
+  strict_build_mode:
     description: 'If set to "false", hugo builds with warnings will be allowed to proceed. Defaults to "true", Hugo warnings will cause action failure.'
     required: true
     default: true
