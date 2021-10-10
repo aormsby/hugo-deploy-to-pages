@@ -2,7 +2,7 @@
 
 test_config_git() {
     get_current_user_config
-    set_git_config "${INPUT_GIT_CONFIG_USER}" "${INPUT_GIT_CONFIG_EMAIL}" "${INPUT_GIT_CONFIG_PULL_REBASE}"
+    set_git_config "${INPUT_GIT_CONFIG_USER}" "${INPUT_GIT_CONFIG_EMAIL}"
 
     verify_set_config
     reset_git_config
@@ -13,14 +13,12 @@ test_config_git() {
 get_current_user_config() {
     CURRENT_USER=$(git config --get --default="null" user.name)
     CURRENT_EMAIL=$(git config --get --default="null" user.email)
-    CURRENT_PULL_CONFIG=$(git config --get --default="false" pull.rebase)
 }
 
 # set action config values
 set_git_config() {
     git config user.name "${1}"
     git config user.email "${2}"
-    git config pull.rebase "${3}"
 }
 
 # verify test values have been set
@@ -44,16 +42,6 @@ verify_set_config() {
     else
         write_out "r" "FAILED - user.email is '${TEST_EMAIL_RESULT}'\n"
     fi
-
-    write_out "y" "TEST"
-    write_out -1 "[Config Pull Settings] -> pull.rebase should equal '${INPUT_GIT_CONFIG_PULL_REBASE}'"
-    TEST_PULL_CONFIG_RESULT=$(git config --get pull.rebase)
-
-    if [ "${TEST_PULL_CONFIG_RESULT}" = "${INPUT_GIT_CONFIG_PULL_REBASE}" ]; then
-        write_out "g" "PASSED"     # no \n because of cleanup output
-    else
-        write_out "r" "FAILED - pull.rebase is '${TEST_PULL_CONFIG_RESULT}'\n"
-    fi
 }
 
 # reset to original user config values
@@ -73,20 +61,15 @@ reset_git_config() {
     else
         git config user.email "${CURRENT_EMAIL}"
     fi
-
-    # always reset pull.rebase
-    git config pull.rebase "${CURRENT_PULL_CONFIG}"
 }
 
 # verify original values
 verify_reset_config() {
     RESET_USER=$(git config --get user.name)
     RESET_EMAIL=$(git config --get user.email)
-    RESET_PULL_CONFIG=$(git config --get pull.rebase)
 
     if [ "${RESET_USER}" = "${CURRENT_USER}" ] &&
-        [ "${RESET_EMAIL}" = "${CURRENT_EMAIL}" ] &&
-        [ "${RESET_PULL_CONFIG}" = "${CURRENT_PULL_CONFIG}" ]; then
+        [ "${RESET_EMAIL}" = "${CURRENT_EMAIL}" ]; then
         write_out -1 "(All git configs set back to original user values.)\n"
     else
         write_out "r" "(Config reset failed. Please check your local git config).\n"

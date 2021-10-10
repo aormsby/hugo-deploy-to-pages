@@ -22,7 +22,6 @@ if [ -z "${GITHUB_ACTIONS}" ] || [ "${GITHUB_ACTIONS}" = false ]; then
 
     INPUT_GIT_CONFIG_USER="Geronimo Jones"
     INPUT_GIT_CONFIG_EMAIL="GJones@geronimo.woah"
-    INPUT_GIT_CONFIG_PULL_REBASE=true
 fi
 
 if [ -n "${INPUT_SUBMODULE_RELEASE_BRANCH}" ]; then

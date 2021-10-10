@@ -17,7 +17,6 @@ config_for_action() {
 get_current_user_config() {
     CURRENT_USER=$(git config --get --default="null" user.name)
     CURRENT_EMAIL=$(git config --get --default="null" user.email)
-    CURRENT_PULL_CONFIG=$(git config --get --default="false" pull.rebase)
 }
 
 # set action config values
@@ -33,9 +32,6 @@ set_git_config() {
         [ "${INPUT_GIT_CONFIG_EMAIL}" != "null" ]; then
         git -C "${1}" config user.email "${INPUT_GIT_CONFIG_EMAIL}"
     fi
-
-    # always set pull.rebase with worflow value (default false)
-    git -C "${1}" config pull.rebase "${INPUT_GIT_CONFIG_PULL_REBASE}"
 }
 
 reset_config_after_action() {
@@ -62,6 +58,4 @@ reset_git_config() {
     else
         git -C "${1}" config user.email "${CURRENT_EMAIL}"
     fi
-
-    git -C "${1}" config pull.rebase "${CURRENT_PULL_CONFIG}"
 }
