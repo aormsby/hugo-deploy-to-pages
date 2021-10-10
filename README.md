@@ -1,5 +1,7 @@
 # Github Action: Hugo Deploy
 
+[![Open in Visual Studio Code](https://open.vscode.dev/badges/open-in-vscode.svg)](https://open.vscode.dev/aormsby/hugo-deploy-to-pages)
+
 An action for building Hugo websites. Build your site from a source branch and deploy on a release branch.
 
 This action supports deploying to the same repository or pushing build data to a submodule. It's great for automating Hugo site builds and maintaining a separate release branch.
