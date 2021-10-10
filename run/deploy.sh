@@ -15,7 +15,7 @@ set_commit_message() {
 
 commit_build() {
     #submodule first
-    if [ "${PUBLISH_TO_SUBMODULE}" ]; then
+    if [ "${PUBLISH_TO_SUBMODULE}" = true ]; then
         commit_with_message "${INPUT_HUGO_PUBLISH_DIRECTORY}"
     fi
 
@@ -31,7 +31,7 @@ commit_with_message() {
 
     if [ "${COMMAND_STATUS}" != 0 ]; then
         # exit on git commit fail
-        write_out "${COMMAND_STATUS}" "Git commit step failed. Check output and try again."
+        write_out "${COMMAND_STATUS}" "Git commit step failed in '${1}' directory. Check output and try again."
     fi
 }
 
@@ -43,7 +43,7 @@ tag_release() {
 deploy_to_remote() {
     #submodule first
     # can always use --set-upstream because if branch already exists it does nothing
-    if [ "${PUBLISH_TO_SUBMODULE}" ]; then
+    if [ "${PUBLISH_TO_SUBMODULE}" = true ]; then
         git -C "${INPUT_HUGO_PUBLISH_DIRECTORY}" push --set-upstream --recurse-submodules=on-demand --follow-tags origin "${INPUT_SUBMODULE_RELEASE_BRANCH}"
         COMMAND_STATUS=$?
 
