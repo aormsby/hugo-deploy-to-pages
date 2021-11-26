@@ -6,6 +6,8 @@ An action for building Hugo websites. Build your site from a source branch and d
 
 This action supports deploying to the same repository or pushing build data to a submodule. It's great for automating Hugo site builds and maintaining a separate release branch.
 
+**v2.1 Fix:** Build process no longer throws an error when there are no changes to commit. Safe exit instead. This was mainly done to prevent the whole workflow from failing.
+
 ## Updates in v2
 
 [See wiki for more info on these changes.](https://github.com/aormsby/hugo-deploy-to-pages/wiki))
@@ -98,7 +100,7 @@ jobs:
         # <<fetch-depth: '0' currently required until shallow clone problems are solved>>
         
     - name: Build site and push to release branch
-      uses: aormsby/hugo-deploy-to-pages@v2
+      uses: aormsby/hugo-deploy-to-pages@v2.1
       id: build_step  # <<for outputs>>
       with:
         source_branch: 'main'

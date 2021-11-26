@@ -30,8 +30,9 @@ commit_with_message() {
     COMMAND_STATUS=$?
 
     if [ "${COMMAND_STATUS}" != 0 ]; then
-        # exit on git commit fail
-        write_out "${COMMAND_STATUS}" "Git commit step failed in '${1}' directory. Check output and try again."
+        # safe exit on git commit fail, but with warning
+        write_out "y" "Git commit step failed in '${1}' directory. It's possible there were no changes to commit, so a safe exit is assumed."
+        write_out 0 'No changes since last build. Exiting gracefully.'
     fi
 }
 
